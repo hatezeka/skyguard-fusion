@@ -1,8 +1,8 @@
-﻿from dataclasses import dataclass
+from dataclasses import dataclass
 from time import perf_counter
 from typing import Callable
 
-from app.detection.engine import Detection, DetectionValidator
+from app.detection.engine import Detection, DetectionEngine, DetectionValidator
 from app.detection.motion import MotionDetectionEngine
 from app.video.pipeline import (
     ProcessedFrame,
@@ -33,7 +33,7 @@ class DetectionPipeline:
         self,
         config: VideoSourceConfig,
         profile: str = "standard",
-        detector: MotionDetectionEngine | None = None,
+        detector: DetectionEngine | None = None,
     ):
         self.config = config
         self.profile = profile
@@ -44,7 +44,9 @@ class DetectionPipeline:
         on_detection: Callable[[DetectionFrame], None] | None = None,
         max_frames: int | None = None,
     ) -> DetectionPipelineResult:
-        self.detector.reset()
+        reset = getattr(self.detector, "reset", None)
+        if callable(reset):
+            reset()
 
         total_detections = 0
         frames_with_detections = 0
