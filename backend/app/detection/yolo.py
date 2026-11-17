@@ -1,4 +1,4 @@
-﻿from pathlib import Path
+from pathlib import Path
 import math
 
 import numpy as np
@@ -111,6 +111,7 @@ class YOLODetectionEngine(DetectionEngine):
             ):
                 raise ValueError("Non-finite model coordinates")
 
+            x1 = max(0.0, min(float(width), x1))
             x1 = max(0.0, min(float(width), x1))
             y1 = max(0.0, min(float(height), y1))
             x2 = max(0.0, min(float(width), x2))
