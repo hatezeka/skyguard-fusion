@@ -50,3 +50,8 @@ Thumbs.db
 /datasets/synthetic/
 /benchmarks/reports/
 
+
+# Local machine-learning datasets
+/backend/datasets/drone_bird/train/
+/backend/datasets/drone_bird/val/
+/backend/datasets/drone_bird/test/
