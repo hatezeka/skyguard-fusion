@@ -45,3 +45,8 @@ datasets/processed/
 # OS
 .DS_Store
 Thumbs.db
+
+# Generated synthetic datasets
+/datasets/synthetic/
+/benchmarks/reports/
+
