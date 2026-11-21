@@ -55,3 +55,10 @@ Thumbs.db
 /backend/datasets/drone_bird/train/
 /backend/datasets/drone_bird/val/
 /backend/datasets/drone_bird/test/
+
+# Downloaded source datasets
+/backend/datasets/incoming/
+/backend/datasets/drone_bird_prepared/
+/backend/runs/
+/backend/**/*.bak
+/backend/datasets/**/*.cache

@@ -1,0 +1,25 @@
+.skyguard-map-scene { margin: 14px 0 24px; padding: 18px; background: #0e1824; color: #e9f5fc; border: 1px solid #254053; border-radius: 12px; }
+.skyguard-map-scene-header { display: flex; gap: 16px; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+.skyguard-map-scene-header h2 { margin: 0 0 5px; font-size: 1.1rem; letter-spacing: .1em; }
+.skyguard-map-scene-header p { color: #a1b6c6; font-size: .85rem; margin: 0; }
+.skyguard-map-scene-header label { display: flex; flex-direction: column; gap: 5px; font-size: .78rem; color: #b9cbd5; }
+.skyguard-map-scene-header select { max-width: 330px; background: #182b3a; color: #f1fbff; border: 1px solid #3c5a70; border-radius: 5px; padding: 7px; }
+.skyguard-map-scene-status { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 10px; }
+.skyguard-map-scene-status span { font-size: .75rem; padding: 4px 9px; border: 1px solid #334c5e; border-radius: 6px; color: #bdd1dc; }
+.skyguard-map-scene-canvas { position: relative; overflow: hidden; border: 1px solid #2d516b; border-radius: 9px; }
+.skyguard-map-scene-canvas svg { display: block; width: 100%; height: auto; min-height: 190px; }
+.skyguard-map-scene-background { fill: #0c1b2b; }
+.skyguard-map-scene-grid { stroke: #18374a; stroke-width: .8; }
+.skyguard-map-scene-guide { stroke: #47dcbd; stroke-width: 2.5; stroke-dasharray: 8 5; }
+.skyguard-map-scene-camera { fill: #69adff; stroke: white; stroke-width: 2; }
+.skyguard-map-scene-camera-label, .skyguard-map-scene-north, .skyguard-map-scene-scale { fill: #e9f5fc; font-size: 15px; }
+.skyguard-map-scene-scale { font-size: 11px; }
+.skyguard-map-scene-controls { position: absolute; right: 9px; bottom: 10px; display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; max-width: 260px; }
+.skyguard-map-scene-controls button { background: #142c3e; border: 1px solid #45657a; color: #e9f5fc; border-radius: 5px; padding: 5px 9px; font-size: .85rem; cursor: pointer; }
+.skyguard-map-scene-controls button:hover { background: #285373; }
+.skyguard-map-scene-controls button:focus-visible { outline: 2px solid #8bf9d8; }
+.skyguard-map-scene-empty { border: 1px dashed #435f70; padding: 20px; margin-top: 12px; color: #b9cbd5; }
+.skyguard-map-scene-disclaimer { font-size: .78rem; color: #b5cbd8; margin: 13px 0 4px; line-height: 1.5; }
+.skyguard-map-scene-observations { display: flex; flex-wrap: wrap; gap: 7px; padding-top: 12px; }
+.skyguard-map-scene-observations span { background: #1b3140; border-radius: 5px; padding: 5px 8px; font-size: .77rem; }
+@media (max-width: 640px) { .skyguard-map-scene { padding: 11px; } .skyguard-map-scene-controls { position: static; max-width: none; padding: 8px; background: #0c1b2b; } }

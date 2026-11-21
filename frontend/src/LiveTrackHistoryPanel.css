@@ -1,0 +1,23 @@
+.skyguard-track-panel { margin: 16px 0 24px; padding: 18px; color: #e9f5fc; background: #0e1824; border: 1px solid #254053; border-radius: 12px; }
+.skyguard-track-header h2 { margin: 0 0 6px; letter-spacing: .09em; font-size: 1.1rem; }
+.skyguard-track-header p, .skyguard-track-disclaimer { color: #a1b6c6; font-size: .82rem; line-height: 1.5; }
+.skyguard-track-stats { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0; }
+.skyguard-track-stats span { border: 1px solid #3b5869; border-radius: 5px; padding: 5px 9px; font-size: .77rem; }
+.skyguard-track-actions { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0 12px; max-height: 92px; overflow-y: auto; }
+.skyguard-track-actions button { background: #182e40; color: #d8efff; border: 1px solid #365a75; border-radius: 5px; cursor: pointer; padding: 5px 10px; }
+.skyguard-track-actions button[aria-pressed=true] { outline: 2px solid #62d9bb; }
+.skyguard-track-canvas { border: 1px solid #314d64; border-radius: 8px; overflow: hidden; }
+.skyguard-track-canvas svg { width: 100%; display: block; height: auto; }
+.skyguard-track-bg { fill: #102335; }
+.skyguard-track-grid { stroke: #224256; stroke-width: .8; }
+.skyguard-track-line { fill: none; stroke: #60dabc; stroke-width: 2.5; }
+.skyguard-track-inactive { stroke-dasharray: 6 5; opacity: .55; }
+.skyguard-track-dot { fill: #ffcf68; stroke: #17303f; stroke-width: 1.5; }
+.skyguard-track-id, .skyguard-track-caption { fill: #e9f5fc; font-size: 13px; }
+.skyguard-track-caption { font-size: 10px; }
+.skyguard-track-list { margin: 12px 0; display: grid; gap: 5px; }
+.skyguard-track-record { display: flex; flex-wrap: wrap; gap: 9px; align-items: center; font-size: .78rem; border-bottom: 1px solid #274052; padding: 6px 4px; }
+.skyguard-track-record strong { color: #8cedd8; }
+.skyguard-track-ambiguous { color: #ffd48b; font-size: .83rem; }
+.skyguard-track-disclaimer { border-top: 1px solid #294557; padding-top: 10px; }
+@media (max-width: 640px) { .skyguard-track-panel { padding: 11px; } }

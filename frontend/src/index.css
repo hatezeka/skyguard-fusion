@@ -1,0 +1,28 @@
+﻿:root {
+  font-family: Consolas, "Courier New", monospace;
+  color: #c6e6d0;
+  background: #080f0b;
+  font-synthesis: none;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+}
+
+button, select, input {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}

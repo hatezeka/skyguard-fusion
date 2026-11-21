@@ -1,0 +1,12 @@
+.skyguard-advisory-panel{margin:18px 0;padding:20px;border:1px solid rgba(148,163,184,.28);border-radius:16px;background:rgba(13,24,39,.78);color:#e5edf7}
+.skyguard-advisory-header{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
+.skyguard-advisory-header h2{margin:0 0 6px;font-size:1.15rem;letter-spacing:.06em}
+.skyguard-advisory-header p{margin:0;color:#adbdce;font-size:.9rem}
+.skyguard-advisory-count{padding:7px 11px;border:1px solid rgba(148,163,184,.4);border-radius:999px;font-size:.82rem}
+.skyguard-advisory-info{margin-top:15px;color:#adbdce;font-size:.83rem}
+.skyguard-advisory-events{list-style:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;padding:0;margin:16px 0}
+.skyguard-advisory-event{border:1px solid rgba(234,179,8,.4);background:rgba(234,179,8,.09);border-radius:12px;padding:12px}
+.skyguard-advisory-event strong{margin-right:12px}.skyguard-advisory-event span{color:#facc15;font-size:.82rem}
+.skyguard-advisory-event p{margin:8px 0;color:#dbeafe}.skyguard-advisory-event small{color:#a9bbcb}
+.skyguard-advisory-disclaimer{border-top:1px solid rgba(148,163,184,.18);padding-top:12px;color:#a9bbcb;font-size:.84rem;line-height:1.6}
+@media(max-width:550px){.skyguard-advisory-panel{padding:12px}.skyguard-advisory-events{grid-template-columns:1fr}}
