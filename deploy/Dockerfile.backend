@@ -1,0 +1,15 @@
+FROM python:3.11-slim
+ENV PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1 PIP_DISABLE_PIP_VERSION_CHECK=1
+RUN apt-get update && apt-get install -y --no-install-recommends libgl1 libglib2.0-0 libgomp1 && rm -rf /var/lib/apt/lists/*
+WORKDIR /opt/skyguard/backend
+COPY backend/requirements.txt backend/requirements-persistence.txt backend/requirements-persistence-postgres.txt ./
+RUN python -m pip install --no-cache-dir --index-url https://download.pytorch.org/whl/cpu \
+      'torch==2.6.0+cpu' 'torchvision==0.21.0+cpu'
+RUN python -m pip install --no-cache-dir -r requirements.txt -r requirements-persistence-postgres.txt \
+      'ultralytics==8.4.216' 'lap>=0.5.12' 'torch==2.6.0+cpu' 'torchvision==0.21.0+cpu' \
+    && python -c "import torch; print('PYTORCH', torch.__version__, 'CUDA', torch.cuda.is_available()); assert not torch.cuda.is_available()"
+COPY backend/ ./
+COPY deploy/media_backend.py ./media_backend.py
+# The real trained model is an external volume, not generic model weights.
+EXPOSE 8000
+CMD ["python", "-m", "uvicorn", "media_backend:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]
