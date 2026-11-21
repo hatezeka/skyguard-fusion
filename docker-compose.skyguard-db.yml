@@ -1,0 +1,22 @@
+# Optional standalone PostgreSQL EXAMPLE, NOT the currently running SkyGuard stack.
+# Actual local full-stack deployment uses deploy/compose.yaml + deploy/compose.local-compat.yaml.
+# This standalone profile is disabled by default to avoid accidental duplicate DBs.
+services:
+  skyguard-postgres-example:
+    profiles: [standalone-db-example]
+    image: postgres:17-bookworm
+    platform: linux/amd64
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: skyguard
+      POSTGRES_USER: skyguard
+      POSTGRES_PASSWORD: ${SKYGUARD_POSTGRES_PASSWORD:?Set password securely in your local shell}
+    volumes:
+      - skyguard_db_example_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U skyguard -d skyguard']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+volumes:
+  skyguard_db_example_data:

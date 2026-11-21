@@ -1,0 +1,14 @@
+{
+  "manifest_type": "SkyGuard FUSION engineering kit V6 source SHA256 (not a scientific dataset manifest)",
+  "date": "2026-11-21",
+  "baseline_git_commit": "446a7e519e37f02553abe826871051e9489316ad",
+  "scope": "six published source/doc files, excluding manifest itself, runtime private data and model weights",
+  "files": {
+    "README_START_HERE.md": "45572be9e8153b36b635afcbcda5df2eef42a93c08f0a742f9a919ccbd82e58f",
+    "README_START_HERE_OPERATOR.md": "f554269e1e298b52bd249f5d515f31147b084c1f1977ddf0ee5018259d232cbb",
+    "docker-compose.skyguard-db.yml": "749c0287e4c29f9e5b21a9b9db78a98ea05ea71c10769546974fae857acbcfb4",
+    "backend/scripts/seed_skyguard_demo.py": "474300b7b4793872cf50fc4717bf4937c3b702ffa70a14da603625628c0b741c",
+    "scripts/Run_SkyGuard_Demo_Seed.ps1": "f541bdb8241e081e4b3e6122358966814348622479bc7e5dc4afd43c24bd537b",
+    "docs/SKYGUARD_TECHNICAL_STATUS_ROADMAP_AND_ACCEPTANCE.md": "182611bd461c3c0080146b20be35c1a9b83ca33f5decd6d524239066101a3de2"
+  }
+}
