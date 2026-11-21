@@ -202,3 +202,24 @@ class AuditEvent(Base):
     details: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
     __table_args__ = (Index("ix_sg_audit_created", "created_at"),)
+
+
+class MediaJob(Base):
+    __tablename__ = "sg_media_jobs"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    kind: Mapped[str] = mapped_column(String(8), nullable=False)
+    status: Mapped[str] = mapped_column(String(20), nullable=False)
+    source_sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+    source_file: Mapped[str] = mapped_column(String(100), nullable=False)
+    session_id: Mapped[str | None] = mapped_column(String(36), ForeignKey("sg_sessions.id", ondelete="SET NULL"))
+    frames_processed: Mapped[int] = mapped_column(Integer, nullable=False, server_default="0")
+    summary: Mapped[dict] = mapped_column(JSON, nullable=False)
+    error: Mapped[str | None] = mapped_column(String(512))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    __table_args__ = (
+        CheckConstraint("kind IN ('IMAGE','VIDEO')", name="media_kind"),
+        CheckConstraint("status IN ('QUEUED','RUNNING','DONE','FAILED','INTERRUPTED')", name="media_status"),
+        CheckConstraint("frames_processed >= 0", name="media_frames_nonnegative"),
+        Index("ix_sg_media_jobs_created_at", "created_at"),
+    )

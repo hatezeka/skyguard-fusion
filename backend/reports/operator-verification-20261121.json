@@ -1,0 +1,56 @@
+{
+    "branch":  "feature/skyguard-final-engineering",
+    "scope":  "Local React operator, Vite proxy, FastAPI composed app and SQLite",
+    "fixes":  [
+                  "The local launcher supplies SKYGUARD_API_KEY to FastAPI and the Vite proxy, and SKYGUARD_DB_API_KEY to persistence. The browser sends the persistence bearer only on the local authenticated path.",
+                  "The composed app mounts the actual synchronized camera bridge. Idle returns null image and zero detections.",
+                  "The composed app stores media job status and summary in sg_media_jobs from revision 0002. Media files stay on disk.",
+                  "The operator starts analysis when a file is selected and renders the annotated output. Conflicts marked for review are excluded from class totals."
+              ],
+    "database":  {
+                     "revision":  "0002",
+                     "quick_check":  "ok",
+                     "foreign_key_violations":  0,
+                     "original_data_modified":  false,
+                     "method":  "Read-only inspection and SQLite online backup to a temporary file for the integration runs"
+                 },
+    "tests":  {
+                  "python":  {
+                                 "command":  "python -B -m pytest -q -p no:cacheprovider",
+                                 "passed":  1063,
+                                 "warnings":  2
+                             },
+                  "frontend":  {
+                                   "command":  "npm.cmd exec -- vitest run --environment jsdom",
+                                   "passed":  64,
+                                   "files":  10
+                               },
+                  "build":  {
+                                "command":  "npm.cmd run build",
+                                "outcome":  "completed",
+                                "entries":  [
+                                                "index.html",
+                                                "operator.html"
+                                            ],
+                                "warning":  "Operator bundle exceeds 500 kB"
+                            },
+                  "real_model_http":  [
+                                          "operator-integration-20261121-excerpt.json",
+                                          "operator-integration-20261121-rgb.json"
+                                      ],
+                  "real_model_consensus":  "operator-consensus-20261121/detections.jsonl",
+                  "consensus_image":  {
+                                          "proposals_merged":  3,
+                                          "boxes":  1,
+                                          "verdict":  "DRONE",
+                                          "iou_against_annotation":  0.90144985135218314
+                                      }
+              },
+    "limitations":  [
+                        "The full 120-frame infrared input reached the 420-second verification deadline. The six-frame infrared and RGB excerpts completed successfully.",
+                        "Two annotated images and two short clips are insufficient to measure dataset-level precision, recall or field accuracy.",
+                        "Physical USB/RTSP acquisition, field identity continuity, interactive map tile rendering and deployed gateway were not verified.",
+                        "The checkpoint exposes DRONE and BIRD. UNKNOWN tracking restrictions were exercised by automated tests; trained UNKNOWN classification was unavailable with this checkpoint.",
+                        "The default port 8000 was occupied. The HTTP verification used isolated loopback ports and left the pre-existing service in place."
+                    ]
+}

@@ -1,0 +1,196 @@
+{
+    "branch":  "feature/skyguard-final-engineering",
+    "results":  [
+                    {
+                        "evidence":  "Active FastAPI lacked SKYGUARD_API_KEY; Vite had it. After backup and restarting only FastAPI, proxied media health and live frame returned 200. An intentionally incomplete upload reached payload validation and returned 415.",
+                        "status":  "Kaloi",
+                        "requirement":  "Inspect working tree and fix active upload HTTP 503"
+                    },
+                    {
+                        "evidence":  {
+                                         "previous_backend_pid":  27940,
+                                         "backend_pid":  4984,
+                                         "frontend_pid":  29556,
+                                         "database":  "backend\\.skyguard_data\\skyguard.sqlite3",
+                                         "database_configuration":  "Default SQLite path; SKYGUARD_DATABASE_URL absent",
+                                         "backup":  "backend\\.skyguard_data\\skyguard-backup-before-auth-20261121-200612.sqlite3",
+                                         "revision":  "0002",
+                                         "prior_media_upload_http":  503,
+                                         "media_health_through_vite_http":  200,
+                                         "configured_model_found":  true,
+                                         "live_frame_through_vite_http":  200,
+                                         "live_state":  "idle"
+                                     },
+                        "status":  "Kaloi",
+                        "requirement":  "Identify active database, verify SQLite and backup existing data"
+                    },
+                    {
+                        "evidence":  {
+                                         "postgresql_version":  "18.0",
+                                         "revision":  "0002",
+                                         "old_row_preserved":  true,
+                                         "metadata_differences":  [
+
+                                                                  ],
+                                         "media_constraints":  [
+                                                                   "media_frames_nonnegative",
+                                                                   "media_kind",
+                                                                   "media_status"
+                                                               ],
+                                         "authenticated_api_roundtrip":  true,
+                                         "media_json_roundtrip":  true
+                                     },
+                        "status":  "Kaloi",
+                        "requirement":  "Isolated PostgreSQL database models, migration and API"
+                    },
+                    {
+                        "evidence":  "Vite and FastAPI used separate processes and ports. Isolated runs used SQLite backups. Edge restored real image results after reload and decoded a WebM from best.pt.",
+                        "status":  "Kaloi",
+                        "requirement":  "Independent frontend/backend with real media through API"
+                    },
+                    {
+                        "evidence":  {
+                                         "real_device_tested":  false,
+                                         "widths":  [
+                                                        360,
+                                                        768,
+                                                        1440
+                                                    ],
+                                         "page_viewport_pairs":  30,
+                                         "height_modes":  [
+                                                              800,
+                                                              1024,
+                                                              900
+                                                          ],
+                                         "layout_failures":  0
+                                     },
+                        "status":  "Kaloi",
+                        "requirement":  "Responsive original views"
+                    },
+                    {
+                        "evidence":  "React test drove waiting-to-error transition with API status responses and no image. Physical IP loss remains unverified.",
+                        "status":  "Kaloi",
+                        "requirement":  "Loading, API errors and loss of IP signal UI"
+                    },
+                    {
+                        "evidence":  {
+                                         "dashboard":  {
+                                                           "beforeReload":  3,
+                                                           "afterReload":  3
+                                                       },
+                                         "source":  "real recorded video replay",
+                                         "tracking":  {
+                                                          "classification":  "DRONE",
+                                                          "observations":  3,
+                                                          "frame_indexes":  [
+                                                                                2,
+                                                                                3,
+                                                                                4
+                                                                            ],
+                                                          "samples":  [
+                                                                          {
+                                                                              "frame_index":  2,
+                                                                              "bbox_xyxy":  [
+                                                                                                380.8370666503906,
+                                                                                                152.94583129882812,
+                                                                                                400.6674499511719,
+                                                                                                170.72207641601562
+                                                                                            ],
+                                                                              "confidence":  0.7418230772018433
+                                                                          },
+                                                                          {
+                                                                              "frame_index":  3,
+                                                                              "bbox_xyxy":  [
+                                                                                                380.136962890625,
+                                                                                                152.86264038085938,
+                                                                                                402.08831787109375,
+                                                                                                172.59353637695312
+                                                                                            ],
+                                                                              "confidence":  0.7085223197937012
+                                                                          },
+                                                                          {
+                                                                              "frame_index":  4,
+                                                                              "bbox_xyxy":  [
+                                                                                                381.24810791015625,
+                                                                                                153.60350036621094,
+                                                                                                403.17474365234375,
+                                                                                                173.3907012939453
+                                                                                            ],
+                                                                              "confidence":  0.7059481739997864
+                                                                          }
+                                                                      ]
+                                                      }
+                                     },
+                        "status":  "Kaloi",
+                        "requirement":  "Live tracking continuity on recorded drone video and dashboard reload"
+                    },
+                    {
+                        "evidence":  "Active backend had no configured RTSP stream or registry profile and no authorized endpoint was provided.",
+                        "status":  "E paprovuar",
+                        "requirement":  "Authorized IP camera on local network TCP reachability"
+                    },
+                    {
+                        "evidence":  "An authorized target and credential configuration were unavailable.",
+                        "status":  "E paprovuar",
+                        "requirement":  "Authorized IP camera authentication"
+                    },
+                    {
+                        "evidence":  "No authorized RTSP source. The software signal state was tested separately.",
+                        "status":  "E paprovuar",
+                        "requirement":  "Fresh frames and signal loss on physical IP camera in dashboard"
+                    },
+                    {
+                        "evidence":  "No authorized external network or VPN vantage point was supplied or used.",
+                        "status":  "E paprovuar",
+                        "requirement":  "Access from authorized external network via private channel"
+                    },
+                    {
+                        "evidence":  "No real RTSP scene and no airborne target were observed. Recorded video evidence is separate.",
+                        "status":  "E paprovuar",
+                        "requirement":  "Real drone live detection on authorized IP source"
+                    },
+                    {
+                        "evidence":  {
+                                         "video_ms":  14453,
+                                         "p95_ms":  null,
+                                         "image_ms":  5701,
+                                         "median_ms":  null,
+                                         "environment":  "Windows; Edge 157 headless on localhost; Vite proxy; FastAPI; SQLite copy; best.pt on CPU",
+                                         "image_samples":  1,
+                                         "video_samples":  1,
+                                         "video_source_frames":  4
+                                     },
+                        "status":  "Kaloi",
+                        "requirement":  "Image and video to dashboard display latency"
+                    },
+                    {
+                        "evidence":  "No authorized RTSP source available.",
+                        "status":  "E paprovuar",
+                        "requirement":  "Physical IP frame to dashboard display latency"
+                    },
+                    {
+                        "evidence":  {
+                                         "python_passed":  1063,
+                                         "react_passed":  67,
+                                         "integration":  "authenticated SQLite and PostgreSQL; recorded drone; media display",
+                                         "typescript_build":  "completed"
+                                     },
+                        "status":  "Kaloi",
+                        "requirement":  "Python, TypeScript build, React and real API integration tests"
+                    }
+                ],
+    "runtime_files":  [
+                          "backend/app/skyguard_persistence/models.py",
+                          "backend/app/detection/live_session.py",
+                          "frontend/src/operator/App.tsx",
+                          "frontend/src/operator/MediaLab.tsx",
+                          "frontend/src/operator/operator.css",
+                          "frontend/src/operator/media-lab.css"
+                      ],
+    "verification_files":  [
+                               "scripts/repair_active_operator.py",
+                               "scripts/verify_operator_postgres.py",
+                               "scripts/verify_operator_end_to_end.py",
+                               "scripts/verify_operator_browser.mjs"
+                           ]
+}

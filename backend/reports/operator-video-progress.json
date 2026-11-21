@@ -1,0 +1,125 @@
+{
+  "sqlite_revision": "0002",
+  "model_sha256": "eee9ea5271fa0e3505e3ff103d4e51202f234445e4c19c3482fa7aa00a122901",
+  "omp_num_threads": "4",
+  "/health": 200,
+  "/cameras": 200,
+  "/sessions": 200,
+  "/benchmarks": 200,
+  "/audit": 200,
+  "/live/frame": 200,
+  "live_state": "idle",
+  "/live/status": 200,
+  "/live/health": 200,
+  "dashboard_session_reads": 7,
+  "auth": {
+    "missing_server_key": 503,
+    "missing_bearer": 401,
+    "invalid_bearer": 403
+  },
+  "media": [
+    {
+      "kind": "IMAGE",
+      "file": "105_jpg.rf.6f2b87affa2033f074057e876228972f.jpg",
+      "job_id": "7637914f03534ff584db425aec8bc41e",
+      "frames_observed_while_running": 0,
+      "frames": 1,
+      "upload_ms": 82.68,
+      "total_ms": 44209.64,
+      "artifact_bytes": 390573,
+      "artifact_type": "image/png",
+      "detections_per_frame_total": {
+        "BIRD": 1
+      },
+      "conflict_review_total": 0,
+      "unique_confirmed_tracks": {},
+      "mean_inference_pipeline_ms": 18140.9,
+      "track_paths_px": [],
+      "scientific_accuracy": "NOT_MEASURED_WITH_GROUND_TRUTH",
+      "note": "Per-frame inference; tracking IDs require verified tracking adapter. No GPS or range inferred.",
+      "prediction_url": "/api/media/jobs/7637914f03534ff584db425aec8bc41e/prediction",
+      "model_classes": {
+        "0": "DRONE",
+        "1": "BIRD"
+      },
+      "unknown_trained": false,
+      "latency_ms_p50": 18140.897799981758,
+      "latency_ms_p95": 18140.897799981758,
+      "image_detections": [
+        {
+          "confidence": 0.7350743412971497,
+          "label": "BIRD",
+          "merged_proposals": 1,
+          "pass_name": "consensus",
+          "track_id": null,
+          "verdict_status": "CONSENSUS",
+          "vote_evidence": [
+            [
+              "BIRD",
+              0.7350743412971497
+            ]
+          ],
+          "xyxy": [
+            142.92819213867188,
+            181.75070190429688,
+            312.33746337890625,
+            286.2295227050781
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "VIDEO",
+      "file": "source-excerpt.mp4",
+      "job_id": "988f652d466a4857ac7afa82248df0a3",
+      "frames_observed_while_running": 15,
+      "frames": 20,
+      "upload_ms": 16.58,
+      "total_ms": 40988.29,
+      "artifact_bytes": 61663,
+      "artifact_type": "video/webm",
+      "detections_per_frame_total": {
+        "DRONE": 20
+      },
+      "conflict_review_total": 0,
+      "unique_confirmed_tracks": {},
+      "mean_inference_pipeline_ms": 1976.67,
+      "track_paths_px": [],
+      "scientific_accuracy": "NOT_MEASURED_WITH_GROUND_TRUTH",
+      "note": "Per-frame inference; tracking IDs require verified tracking adapter. No GPS or range inferred.",
+      "prediction_url": "/api/media/jobs/988f652d466a4857ac7afa82248df0a3/prediction",
+      "model_classes": {
+        "0": "DRONE",
+        "1": "BIRD"
+      },
+      "unknown_trained": false,
+      "latency_ms_p50": 1160.358449909836,
+      "latency_ms_p95": 7767.91869988665
+    }
+  ],
+  "video_excerpt": {
+    "source_file": "backend\\reports\\targeted_v1_20261121_153801_4778438\\V_DRONE_003\\source.mp4",
+    "first_frames": 20
+  },
+  "browser_frame_api": {
+    "frame_index": 0,
+    "latency_ms": 751.6,
+    "detections": [
+      {
+        "classification": "BIRD",
+        "verdict_status": "CONSENSUS",
+        "track_id": null,
+        "confidence": 0.7350743412971497,
+        "bbox": [
+          142.92819213867188,
+          181.75070190429688,
+          312.33746337890625,
+          286.2295227050781
+        ],
+        "range_m": null,
+        "latitude": null,
+        "longitude": null
+      }
+    ]
+  }
+}

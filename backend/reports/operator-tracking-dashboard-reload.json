@@ -1,0 +1,65 @@
+{
+  "sqlite_revision": "0002",
+  "model_sha256": "eee9ea5271fa0e3505e3ff103d4e51202f234445e4c19c3482fa7aa00a122901",
+  "omp_num_threads": "4",
+  "/health": 200,
+  "/cameras": 200,
+  "/sessions": 200,
+  "/benchmarks": 200,
+  "/audit": 200,
+  "/live/frame": 200,
+  "live_state": "idle",
+  "/live/status": 200,
+  "/live/health": 200,
+  "dashboard_session_reads": 7,
+  "auth": {
+    "missing_server_key": 503,
+    "missing_bearer": 401,
+    "invalid_bearer": 403
+  },
+  "tracking_replay": {
+    "classification": "DRONE",
+    "observations": 3,
+    "frame_indexes": [
+      2,
+      3,
+      4
+    ],
+    "samples": [
+      {
+        "frame_index": 2,
+        "bbox_xyxy": [
+          380.8370666503906,
+          152.94583129882812,
+          400.6674499511719,
+          170.72207641601562
+        ],
+        "confidence": 0.7418230772018433
+      },
+      {
+        "frame_index": 3,
+        "bbox_xyxy": [
+          380.136962890625,
+          152.86264038085938,
+          402.08831787109375,
+          172.59353637695312
+        ],
+        "confidence": 0.7085223197937012
+      },
+      {
+        "frame_index": 4,
+        "bbox_xyxy": [
+          381.24810791015625,
+          153.60350036621094,
+          403.17474365234375,
+          173.3907012939453
+        ],
+        "confidence": 0.7059481739997864
+      }
+    ]
+  },
+  "tracking_dashboard": {
+    "beforeReload": 3,
+    "afterReload": 3
+  }
+}

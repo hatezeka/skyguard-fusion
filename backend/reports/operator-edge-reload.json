@@ -1,0 +1,138 @@
+{
+  "sqlite_revision": "0002",
+  "model_sha256": "eee9ea5271fa0e3505e3ff103d4e51202f234445e4c19c3482fa7aa00a122901",
+  "omp_num_threads": "2",
+  "/health": 200,
+  "/cameras": 200,
+  "/sessions": 200,
+  "/benchmarks": 200,
+  "/audit": 200,
+  "/live/frame": 200,
+  "live_state": "idle",
+  "/live/status": 200,
+  "/live/health": 200,
+  "dashboard_session_reads": 7,
+  "auth": {
+    "missing_server_key": 503,
+    "missing_bearer": 401,
+    "invalid_bearer": 403
+  },
+  "media": [
+    {
+      "kind": "IMAGE",
+      "file": "105_jpg.rf.6f2b87affa2033f074057e876228972f.jpg",
+      "job_id": "d23d336d6d0946f8a3c7dfd939073c85",
+      "frames_observed_while_running": 1,
+      "frames": 1,
+      "upload_ms": 49.66,
+      "total_ms": 31039.21,
+      "artifact_bytes": 390573,
+      "artifact_type": "image/png",
+      "detections_per_frame_total": {
+        "BIRD": 1
+      },
+      "conflict_review_total": 0,
+      "unique_confirmed_tracks": {},
+      "mean_inference_pipeline_ms": 15467.59,
+      "track_paths_px": [],
+      "scientific_accuracy": "NOT_MEASURED_WITH_GROUND_TRUTH",
+      "note": "Per-frame inference; tracking IDs require verified tracking adapter. No GPS or range inferred.",
+      "prediction_url": "/api/media/jobs/d23d336d6d0946f8a3c7dfd939073c85/prediction",
+      "model_classes": {
+        "0": "DRONE",
+        "1": "BIRD"
+      },
+      "unknown_trained": false,
+      "latency_ms_p50": 15467.59259980172,
+      "latency_ms_p95": 15467.59259980172,
+      "image_detections": [
+        {
+          "confidence": 0.7350743412971497,
+          "label": "BIRD",
+          "merged_proposals": 1,
+          "pass_name": "consensus",
+          "track_id": null,
+          "verdict_status": "CONSENSUS",
+          "vote_evidence": [
+            [
+              "BIRD",
+              0.7350743412971497
+            ]
+          ],
+          "xyxy": [
+            142.92819213867188,
+            181.75070190429688,
+            312.33746337890625,
+            286.2295227050781
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "VIDEO",
+      "file": "source-excerpt.mp4",
+      "job_id": "eeec2e665fe34298a174f87bd384c112",
+      "frames_observed_while_running": 1,
+      "frames": 3,
+      "upload_ms": 17.33,
+      "total_ms": 15127.18,
+      "artifact_bytes": 22501,
+      "artifact_type": "video/webm",
+      "detections_per_frame_total": {
+        "DRONE": 3
+      },
+      "conflict_review_total": 0,
+      "unique_confirmed_tracks": {},
+      "mean_inference_pipeline_ms": 4790.73,
+      "track_paths_px": [],
+      "scientific_accuracy": "NOT_MEASURED_WITH_GROUND_TRUTH",
+      "note": "Per-frame inference; tracking IDs require verified tracking adapter. No GPS or range inferred.",
+      "prediction_url": "/api/media/jobs/eeec2e665fe34298a174f87bd384c112/prediction",
+      "model_classes": {
+        "0": "DRONE",
+        "1": "BIRD"
+      },
+      "unknown_trained": false,
+      "latency_ms_p50": 2101.772000081837,
+      "latency_ms_p95": 10408.510600216687
+    }
+  ],
+  "headless_browser": {
+    "databaseConnected": true,
+    "tacticalMap": true,
+    "geographicCanvas": true,
+    "geographicTiles": 6,
+    "mapError": null,
+    "previews": [
+      "IMAGE",
+      "VIDEO"
+    ],
+    "mediaResultRestoredAfterReload": true,
+    "webmDecoded": true
+  },
+  "video_excerpt": {
+    "source_file": "C:\\Users\\Amigos\\Projects\\skyguard-fusion\\backend\\datasets\\temporal_videos\\raw\\drone\\V_DRONE_003.mp4",
+    "first_frames": 3
+  },
+  "browser_frame_api": {
+    "frame_index": 0,
+    "latency_ms": 2382.52,
+    "detections": [
+      {
+        "classification": "BIRD",
+        "verdict_status": "CONSENSUS",
+        "track_id": null,
+        "confidence": 0.7350743412971497,
+        "bbox": [
+          142.92819213867188,
+          181.75070190429688,
+          312.33746337890625,
+          286.2295227050781
+        ],
+        "range_m": null,
+        "latitude": null,
+        "longitude": null
+      }
+    ]
+  }
+}

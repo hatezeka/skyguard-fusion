@@ -1,0 +1,15 @@
+{
+  "source": "V_DRONE_003/source.mp4",
+  "source_frames": 313,
+  "frames_processed": 313,
+  "mean_inference_ms": 3067.755290090639,
+  "p50_ms": 2208.35809991695,
+  "p95_ms": 8770.357399946079,
+  "artifact_bytes": 973790,
+  "observed_job": {
+    "status": "DONE",
+    "frames_processed": 313
+  },
+  "inference_report": null,
+  "verification": "Original HTTP polling reached its deadline; this observation followed the same worker after the deadline."
+}

@@ -44,8 +44,9 @@ export class OperatorApi {
 export async function fetchLiveStatus(route:string,signal?:AbortSignal,token?:string){
   const path=normalizePath(route)
   if(!path.startsWith('/api/persistence/live/'))throw new Error('Only the authenticated SkyGuard live bridge is supported')
-  if(!token)throw new Error('Local persistence key is required for live status')
-  const r=await fetch(path,{cache:'no-store',credentials:'same-origin',headers:{Authorization:`Bearer ${token}`},signal})
+  const deployed=import.meta.env.VITE_SKYGUARD_DEPLOYED==='true'
+  if(!deployed&&!token)throw new Error('Local persistence key is required for live status')
+  const r=await fetch(path,{cache:'no-store',credentials:'same-origin',headers:deployed?{}:{Authorization:`Bearer ${token}`},signal})
   if(!r.ok)throw new Error(`Live status HTTP ${r.status}`)
   const length=r.headers.get('content-length');if(length&&Number(length)>12000000)throw new Error('Live response too large')
   return await r.json() as unknown

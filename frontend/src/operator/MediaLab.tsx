@@ -3,7 +3,7 @@ import './media-lab.css'
 
 type Point={frame:number;x_px:number;y_px:number}
 type Path={track_id:string;classification:string;points:Point[]}
-type Job={id:string;status:string;kind:string;frames_processed:number;session_id:string|null;error:string|null;summary?:{detections_per_frame_total?:Record<string,number>;unique_confirmed_tracks?:Record<string,number>;mean_inference_pipeline_ms?:number|null;preview_jpeg_base64?:string|null;track_paths_px?:Path[];scientific_accuracy?:string;note?:string}}
+type Job={id:string;status:string;kind:string;frames_processed:number;session_id:string|null;error:string|null;summary?:{detections_per_frame_total?:Record<string,number>;conflict_review_total?:number;unique_confirmed_tracks?:Record<string,number>;mean_inference_pipeline_ms?:number|null;preview_jpeg_base64?:string|null;prediction_url?:string;model_classes?:Record<string,string>;unknown_trained?:boolean;track_paths_px?:Path[];scientific_accuracy?:string;note?:string}}
 function TrajectoryPlot({paths}:{paths:Path[]}){
   const points=paths.flatMap(p=>p.points)
   if(!points.length)return null
@@ -21,18 +21,33 @@ function TrajectoryPlot({paths}:{paths:Path[]}){
   </g>)}
   </svg></div>
 }
-type LiveResult={frame_index:number;session_id:string;detections:Array<{classification:string;track_id:string|null;confidence:number; bbox:[number,number,number,number]}>;pixel_trajectories:Array<{track_id:string;points:Point[]}>;confirmed_unique_id_count:Record<string,number>;preview_jpeg_base64?:string|null;latency_ms:number;range_m:null}
+type LiveResult={frame_index:number;session_id:string;detections:Array<{classification:string|null;track_id:string|null;confidence:number; bbox:[number,number,number,number]}>;pixel_trajectories:Array<{track_id:string;points:Point[]}>;confirmed_unique_id_count:Record<string,number>;preview_jpeg_base64?:string|null;latency_ms:number;range_m:null}
 const noRange='Distanca: E PAVERIFIKUAR — GPS i kamerës nuk jep largësinë e objektit.'
+
+class ApiError extends Error {
+  readonly status:number
+  constructor(status:number,message:string){
+    super(message)
+    this.status=status
+  }
+}
 
 async function readJson(url:string,init?:RequestInit):Promise<any>{
   const r=await fetch(url,{credentials:'same-origin',cache:'no-store',...init})
   let out:any={};try{out=await r.json()}catch{ /* HTTP errors may not be JSON */ }
-  if(!r.ok)throw new Error(typeof out?.detail==='string'?out.detail:`HTTP ${r.status}`)
+  if(!r.ok)throw new ApiError(r.status,typeof out?.detail==='string'?out.detail:`HTTP ${r.status}`)
   return out
 }
 
-export default function MediaLab(){
-  const [file,setFile]=useState<File|null>(null)
+type MediaLabProps = {
+  persistenceKey?: string
+  activeJobId?: string
+  onJobAccepted?: (jobId?: string) => void
+}
+
+export default function MediaLab({persistenceKey = '', activeJobId, onJobAccepted}:MediaLabProps){
+  const deployed=import.meta.env.VITE_SKYGUARD_DEPLOYED==='true'
+  const [,setFile]=useState<File|null>(null)
   const [job,setJob]=useState<Job|null>(null)
   const [message,setMessage]=useState('')
   const [busy,setBusy]=useState(false)
@@ -41,18 +56,44 @@ export default function MediaLab(){
   const [ipUrl,setIpUrl]=useState('')
   const [ipState,setIpState]=useState('')
   const [ipLive,setIpLive]=useState<any>(null)
+  const [ipSignal,setIpSignal]=useState('')
+  const ipLastFrame=useRef({index:null as number|null,receivedAt:0})
   const cameraRef=useRef<HTMLVideoElement>(null)
   const mediaStream=useRef<MediaStream|null>(null)
   const inFlight=useRef(false)
   const cameraActive=useRef(false)
   const imageCanvas=useRef<HTMLCanvasElement|null>(null)
-  const jobID=job?.id
+  const jobID=job?.id??activeJobId
+  const missingJobId=useRef<string|undefined>(undefined)
   useEffect(()=>{
-    if(!jobID||job?.status==='DONE'||job?.status==='FAILED'||job?.status==='INTERRUPTED')return
-    const timer=window.setInterval(()=>{void readJson(`/api/media/jobs/${jobID}`).then(setJob).catch(e=>setMessage(String(e)))},1200)
-    return()=>window.clearInterval(timer)
-  },[jobID,job?.status])
-  useEffect(()=>()=>{cameraActive.current=false;mediaStream.current?.getTracks().forEach(t=>t.stop())},[])
+    if(busy||!jobID||jobID===missingJobId.current||job?.status==='DONE'||job?.status==='FAILED'||job?.status==='INTERRUPTED')return
+    const controller=new AbortController()
+    let timer:number
+    async function poll(){
+      try {
+        const result=await readJson('/api/media/jobs/'+jobID,{signal:controller.signal}) as Job
+        if(!controller.signal.aborted)setJob(result)
+      } catch(e) {
+        if(!controller.signal.aborted){
+          if(e instanceof ApiError&&e.status===404){
+            missingJobId.current=jobID
+            setJob(null)
+            onJobAccepted?.()
+            setMessage('The previous media job is unavailable. Choose a file to start a new analysis.')
+          }else setMessage(String(e))
+        }
+      } finally {
+        if(!controller.signal.aborted&&missingJobId.current!==jobID)timer=window.setTimeout(()=>void poll(),1200)
+      }
+    }
+    timer=window.setTimeout(()=>void poll(),1200)
+    return()=>{controller.abort();window.clearTimeout(timer)}
+  },[busy,jobID,job?.status,onJobAccepted])
+  useEffect(()=>()=>{
+    if(cameraActive.current)void readJson('/api/media/browser/stop',{method:'POST'}).catch(()=>null)
+    cameraActive.current=false
+    mediaStream.current?.getTracks().forEach(t=>t.stop())
+  },[])
   useEffect(()=>{
     if(!cameraOn)return
     let stopped=false
@@ -78,21 +119,45 @@ export default function MediaLab(){
     return()=>{stopped=true;window.clearInterval(timer)}
   },[cameraOn])
   useEffect(()=>{
-    if(!ipState.startsWith('RUNNING'))return
-    const timer=window.setInterval(()=>{void readJson('/api/persistence/live/frame').then(setIpLive).catch(e=>setMessage(String(e)))},1500)
-    return()=>window.clearInterval(timer)
-  },[ipState])
-  async function submitFile(){
-    if(!file)return
-    const type=file.type.startsWith('image/')?'IMAGE':'VIDEO'
-    const sizeMax=type==='IMAGE'?12*1024*1024:40*1024*1024
-    if(file.size>sizeMax){setMessage('File too large: 12MB image / 40MB video limit');return}
+    if(!ipState.startsWith('RUNNING')||(!deployed&&!persistenceKey))return
+    const controller=new AbortController()
+    let timer:number
+    async function poll(){
+      try{
+        const frame=await readJson('/api/persistence/live/frame',{signal:controller.signal,headers:deployed?{}:{Authorization:'Bearer '+persistenceKey}})
+        if(controller.signal.aborted)return
+        const now=Date.now()
+        if(frame.image_base64&&frame.frame_index!==ipLastFrame.current.index){
+          ipLastFrame.current={index:frame.frame_index,receivedAt:now}
+        }
+        const fresh=frame.state==='running'&&frame.image_base64&&now-ipLastFrame.current.receivedAt<=10000
+        setIpLive(fresh?frame:null)
+        setIpSignal(fresh?'':frame.state==='running'&&now-ipLastFrame.current.receivedAt<=10000
+          ?'Waiting for the first IP camera frame.'
+          :'IP camera signal unavailable. Waiting for a new frame.')
+      }catch(e){
+        if(!controller.signal.aborted){
+          setIpLive(null)
+          setIpSignal('IP camera signal unavailable. '+String(e))
+        }
+      }finally{
+        if(!controller.signal.aborted)timer=window.setTimeout(()=>void poll(),1500)
+      }
+    }
+    void poll()
+    return()=>{controller.abort();window.clearTimeout(timer)}
+  },[ipState,deployed,persistenceKey])
+  async function submitFile(selected:File){
+    const type=selected.type.startsWith('image/')?'IMAGE':'VIDEO'
+    const sizeMax=type==='IMAGE'?12*1024*1024:80*1024*1024
+    if(selected.size>sizeMax){setMessage('File too large: 12MB image / 80MB video limit');return}
     setBusy(true);setMessage('Uploading to authenticated backend, actual AI required...');setJob(null)
     try{
-      const out=await readJson('/api/media/upload',{method:'POST',headers:{'Content-Type':'application/octet-stream','X-Skyguard-Media-Type':type},body:file}) as {job_id:string}
+      const out=await readJson('/api/media/upload',{method:'POST',headers:{'Content-Type':'application/octet-stream','X-Skyguard-Media-Type':type},body:selected}) as {job_id:string}
+      onJobAccepted?.(out.job_id)
       const j=await readJson(`/api/media/jobs/${out.job_id}`) as Job
-      setJob(j);setMessage('Backend job created. Results are stored in PostgreSQL.')
-    }catch(e){setMessage(String(e))}finally{setBusy(false)}
+      setJob(j);setMessage('Backend is analyzing the uploaded file with the real checkpoint. The input and results are stored locally.')
+    }catch(e){setMessage(e instanceof TypeError ? 'Backend unavailable. Start SkyGuard API on port 8000 and Vite on port 5173; check the Vite proxy and SKYGUARD_API_KEY.' : String(e))}finally{setBusy(false)}
   }
   async function startCamera(){
     try{
@@ -102,6 +167,9 @@ export default function MediaLab(){
       if(cameraRef.current){cameraRef.current.srcObject=stream;await cameraRef.current.play()}
       cameraActive.current=true;setCameraOn(true)
     }catch(e){
+      mediaStream.current?.getTracks().forEach(t=>t.stop())
+      mediaStream.current=null
+      if(cameraRef.current)cameraRef.current.srcObject=null
       void readJson('/api/media/browser/stop',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'}).catch(()=>null)
       setMessage(`Camera unavailable: ${String(e)}`)
     }
@@ -114,32 +182,41 @@ export default function MediaLab(){
   }
   async function ipAction(start:boolean){
     try{
+      if(!deployed&&!persistenceKey)throw new Error('Connect persistence in Settings before starting the IP camera')
+      const headers:Record<string,string>={'Content-Type':'application/json'}
+      if(!deployed)headers.Authorization='Bearer '+persistenceKey
       if(start){
         const u=new URL(ipUrl)
         if(u.protocol!=='rtsp:')throw new Error('RTSP URL required')
-        await readJson('/api/persistence/live/start',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({source_type:'rtsp',source_location:ipUrl,fusion_enabled:false})})
+        await readJson('/api/persistence/live/start',{method:'POST',headers,body:JSON.stringify({source_type:'rtsp',source_location:ipUrl,fusion_enabled:false})})
+        ipLastFrame.current={index:null,receivedAt:Date.now()}
+        setIpSignal('Waiting for the first IP camera frame.')
         setIpState('RUNNING · server-side IP stream');setMessage('IP camera started by existing backend LiveSessionManager.')
       }else{
-        await readJson('/api/persistence/live/stop',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'})
-        setIpState('STOPPED');setIpLive(null)
+        await readJson('/api/persistence/live/stop',{method:'POST',headers,body:'{}'})
+        setIpState('STOPPED');setIpLive(null);setIpSignal('IP camera stopped.')
       }
     }catch(e){setMessage(`IP stream: ${String(e)}`)}
   }
-  const image=job?.summary?.preview_jpeg_base64??live?.preview_jpeg_base64??ipLive?.image_base64
+
   const paths=job?.summary?.track_paths_px??live?.pixel_trajectories?.map(p=>({...p,classification:'DRONE/BIRD'}))??[]
   return <section className="sg-media-lab" aria-label="AI photo video and camera analysis">
-    <header><div><h2>AI Media Analysis & Live Cameras</h2><p>Real backend inference · PostgreSQL evidence · DRONE/BIRD tracking · UNKNOWN without IDs</p></div><span>SOFTWARE-ONLY / SCIENTIFICALLY UNCERTIFIED</span></header>
+    <header><div><h2>AI Media Analysis & Live Cameras</h2><p>Real backend inference · persistence API · DRONE/BIRD tracking · UNKNOWN without IDs</p></div><span>SOFTWARE-ONLY / SCIENTIFICALLY UNCERTIFIED</span></header>
     <div className="sg-media-cols">
-      <div><h3>Upload photo or video</h3><input aria-label="Choose image or video" type="file" accept="image/jpeg,image/png,video/mp4,video/x-msvideo,video/webm" onChange={e=>setFile(e.target.files?.[0]??null)}/><button disabled={!file||busy} onClick={()=>void submitFile()}>{busy?'Uploading...':'Analyze with SkyGuard AI'}</button><p>Photo: detection/classification only. Video: per-frame detections, persistent track IDs and pixel trajectories. Max 120 frames; original file is stored server-side.</p></div>
+      <div><h3>Upload photo or video</h3><input aria-label="Choose image or video" type="file" accept="image/jpeg,image/png,video/mp4" disabled={busy} onChange={e=>{const next=e.target.files?.[0]??null;setFile(next);if(next)void submitFile(next)}}/><p>{busy?'Uploading...':'Select once to automatically analyze'}. Image: detection/classification. Video: all frames processed; track IDs are not claimed unless independently verified. Original input and annotated result are stored locally (max 80 MiB).</p></div>
       <div><h3>Laptop / USB browser camera</h3><video ref={cameraRef} muted playsInline autoPlay className="sg-camera-preview"/><button disabled={cameraOn} onClick={()=>void startCamera()}>Start browser camera</button><button disabled={!cameraOn} onClick={()=>void stopCamera()}>Stop camera</button><p>Browser captures at most 2 FPS via HTTPS or localhost; processing speed is measured, not assumed.</p></div>
-      <div><h3>IP camera (RTSP, LAN)</h3><input aria-label="Private network RTSP URL" type="password" autoComplete="off" value={ipUrl} onChange={e=>setIpUrl(e.target.value)} placeholder="rtsp://192.168.x.x:554/..."/><button disabled={!ipUrl||ipState.startsWith('RUNNING')} onClick={()=>void ipAction(true)}>Start IP camera</button><button disabled={!ipState.startsWith('RUNNING')} onClick={()=>void ipAction(false)}>Stop IP camera</button><p>RTSP reachable from backend host/container required; only private LAN IPv4 addresses accepted.</p></div>
+      <div><h3>IP camera (RTSP, LAN)</h3><input aria-label="Private network RTSP URL" type="password" autoComplete="off" value={ipUrl} onChange={e=>setIpUrl(e.target.value)} placeholder="rtsp://192.168.x.x:554/..."/><button disabled={!ipUrl||ipState.startsWith('RUNNING')} onClick={()=>void ipAction(true)}>Start IP camera</button><button disabled={!ipState.startsWith('RUNNING')} onClick={()=>void ipAction(false)}>Stop IP camera</button><p>The backend must be able to reach the RTSP stream and have RTSP live input enabled.</p></div>
     </div>
     {message&&<p role="status" className="sg-media-message">{message}</p>}
-    {job&&<div className="sg-media-result"><h3>Job: {job.status}</h3><p>Session: {job.session_id??'pending'} · Frames: {job.frames_processed} · Type: {job.kind} · Error: {job.error??'none'}</p></div>}
+    {job&&<div className="sg-media-result"><h3>Job: {job.status}</h3><p>Session: {job.session_id??'Media-only job'} · Frames: {job.frames_processed} · Type: {job.kind} · Error: {job.error??'none'}</p></div>}
     {live&&cameraOn&&<div className="sg-media-result"><h3>Live frame #{live.frame_index}</h3><p>Detections this frame: {live.detections.length} · Confirmed identities: {JSON.stringify(live.confirmed_unique_id_count)} · Processing: {live.latency_ms} ms</p></div>}
+    {ipSignal&&<p role="status" className="sg-media-message">{ipSignal}</p>}
     {ipLive&&<div className="sg-media-result"><h3>IP live: {ipLive.state}</h3><p>Frame: {ipLive.frame_index??'—'} · Observed detections: {ipLive.detections?.length??0} · Confirmed tracks: {ipLive.tracks?.length??0}</p></div>}
-    {image&&<img className="sg-media-output" alt="AI annotated image from the authenticated backend, not a simulated overlay" src={`data:image/jpeg;base64,${image}`}/>}
-    {job?.summary&&<div className="sg-media-result"><p>Detection events: {JSON.stringify(job.summary.detections_per_frame_total??{})}</p><p>Distinct confirmed track IDs: {JSON.stringify(job.summary.unique_confirmed_tracks??{})}</p><p>Measured mean pipeline latency: {job.summary.mean_inference_pipeline_ms??'—'} ms</p><p>Ground-truth accuracy: {job.summary.scientific_accuracy??'NOT MEASURED'}</p></div>}
+    {job?.status==='DONE'&&job.kind==='VIDEO'&&job.summary?.prediction_url&&<div className="sg-media-result"><h3>Annotated analysis video</h3><video className="sg-media-output" controls preload="metadata" src={job.summary.prediction_url}/><a href={job.summary.prediction_url} download>Open annotated video</a></div>}
+    {job?.summary?.preview_jpeg_base64&&<img className="sg-media-output" alt="Annotated upload" src={'data:image/jpeg;base64,'+job.summary.preview_jpeg_base64}/>}
+    {cameraOn&&live?.preview_jpeg_base64&&<img className="sg-media-output" alt="Annotated browser camera frame" src={'data:image/jpeg;base64,'+live.preview_jpeg_base64}/>}
+    {ipLive?.image_base64&&<img className="sg-media-output" alt="Annotated IP camera frame" src={'data:image/jpeg;base64,'+ipLive.image_base64}/>}
+    {job?.summary&&<div className="sg-media-result"><p>Model classes: {JSON.stringify(job.summary.model_classes??{})} · UNKNOWN trained: {job.summary.unknown_trained?'yes':'no'}</p><p>Detection events: {JSON.stringify(job.summary.detections_per_frame_total??{})}</p><p>Conflicting proposals for review: {job.summary.conflict_review_total??0}</p><p>Distinct confirmed track IDs: {JSON.stringify(job.summary.unique_confirmed_tracks??{})}</p><p>Measured mean pipeline latency: {job.summary.mean_inference_pipeline_ms??'—'} ms</p><p>Ground-truth accuracy: {job.summary.scientific_accuracy??'NOT MEASURED'}</p></div>}
     {paths.length>0&&<details><summary>Recorded pixel trajectories ({paths.length})</summary><TrajectoryPlot paths={paths}/><div className="sg-media-tracks">{paths.slice(0,30).map(p=><div key={p.track_id}><strong>{p.track_id}</strong> · {('classification' in p ? p.classification : 'DRONE/BIRD')} · {p.points.length} measured frame positions · Last: {JSON.stringify(p.points[p.points.length-1])}</div>)}</div></details>}
     <p className="sg-media-caveat">{noRange} UNKNOWN never gets track ID or trajectory. A photo has no motion history. RGB classification and model checkpoints still require source-disjoint ground-truth validation.</p>
   </section>

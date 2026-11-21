@@ -1,0 +1,26 @@
+{
+  "source": "V_DRONE_003.mp4",
+  "runs": [
+    {
+      "threads": 4,
+      "frames": 8,
+      "mean_ms": 463.4240749874152,
+      "median_ms": 402.6213000761345,
+      "same_rounded_output": true
+    },
+    {
+      "threads": 2,
+      "frames": 8,
+      "mean_ms": 442.9745500383433,
+      "median_ms": 387.98875000793487,
+      "same_rounded_output": true
+    },
+    {
+      "threads": 1,
+      "frames": 8,
+      "mean_ms": 480.24101252667606,
+      "median_ms": 466.17070003412664,
+      "same_rounded_output": true
+    }
+  ]
+}

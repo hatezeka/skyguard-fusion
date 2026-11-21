@@ -8,6 +8,9 @@ import os
 
 from fastapi import FastAPI
 from .api import create_router
+from .database import Database
+from .live_bridge import mount_live_bridge
+from .media_jobs import MediaJobs
 
 main_spec = os.getenv("SKYGUARD_MAIN_APP", "app.main:app")
 module_name, sep, attr_name = main_spec.partition(":")
@@ -20,5 +23,15 @@ except (ImportError, AttributeError) as exc:
     raise RuntimeError(f"Cannot load existing SkyGuard FastAPI app at {main_spec}: {exc}") from exc
 if not isinstance(app, FastAPI):
     raise TypeError(f"{main_spec} is not a FastAPI instance")
-if not any(getattr(route, "path", "") == "/api/persistence/health" for route in app.routes):
-    app.include_router(create_router())
+if not getattr(app.state, "skyguard_persistence_mounted", False):
+    database = Database()
+    app.include_router(create_router(database))
+    mount_live_bridge(app, database)
+    app.state.skyguard_persistence_mounted = True
+
+    @app.on_event("startup")
+    def start_media_jobs():
+        if main_spec == "app.main:app":
+            jobs = MediaJobs(database)
+            jobs.interrupt_pending()
+            app.state.skyguard_media_jobs = jobs

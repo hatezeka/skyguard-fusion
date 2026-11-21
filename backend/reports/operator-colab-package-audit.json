@@ -1,0 +1,18 @@
+{
+    "archive":  "skyguard-colab-package.zip",
+    "checkpoint_data":  "/content/skyguard-colab-package/dataset/dataset.yaml",
+    "counts":  {
+                   "train":  7337,
+                   "val":  861,
+                   "test":  438
+               },
+    "sample_size":  40,
+    "sample_files_matching_archive_test_by_name_and_sha256":  40,
+    "sample_matches_to_archive_train_or_val_sha256":  [
+
+                                                      ],
+    "sample_matches_to_archive_train_or_val_source_stems":  [
+
+                                                            ],
+    "limitation":  "The local package matches the checkpoint data directory name. No signed training manifest or original camera/sequence identifiers were supplied."
+}

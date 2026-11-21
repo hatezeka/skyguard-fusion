@@ -1,0 +1,115 @@
+{
+    "branch":  "feature/skyguard-final-engineering",
+    "sqlite_revision":  "0002",
+    "original_database_modified":  false,
+    "browser":  {
+                    "databaseConnected":  true,
+                    "tacticalMap":  true,
+                    "geographicCanvas":  true,
+                    "geographicTiles":  6,
+                    "mapError":  null,
+                    "previews":  [
+                                     "IMAGE",
+                                     "VIDEO"
+                                 ],
+                    "mediaResultRestoredAfterReload":  true,
+                    "webmDecoded":  true
+                },
+    "media_and_browser_camera_concurrency":  {
+                                                 "camera_frame":  0,
+                                                 "camera_latency_ms":  1272.56,
+                                                 "persistence_health_ms":  27.64,
+                                                 "video_status":  "RUNNING",
+                                                 "video_frames_processed":  1
+                                             },
+    "concurrent_video_completed_frames":  12,
+    "full_video_baseline":  {
+                                "status":  "DONE",
+                                "frames_processed":  313
+                            },
+    "full_video_baseline_p95_ms":  8770.357399946079,
+    "cpu_benchmark":  [
+                          {
+                              "threads":  4,
+                              "frames":  8,
+                              "mean_ms":  463.4240749874152,
+                              "median_ms":  402.6213000761345,
+                              "same_rounded_output":  true
+                          },
+                          {
+                              "threads":  2,
+                              "frames":  8,
+                              "mean_ms":  442.9745500383433,
+                              "median_ms":  387.98875000793487,
+                              "same_rounded_output":  true
+                          },
+                          {
+                              "threads":  1,
+                              "frames":  8,
+                              "mean_ms":  480.24101252667606,
+                              "median_ms":  466.17070003412664,
+                              "same_rounded_output":  true
+                          }
+                      ],
+    "cpu_benchmark_limitation":  "Eight matched input frames per setting. The optional second full-length run was stopped. No throughput improvement for long clips was established.",
+    "annotation_sample_size":  40,
+    "annotation_iou_threshold":  0.5,
+    "annotation_scores":  {
+                              "BIRD":  {
+                                           "tp":  19,
+                                           "fp":  4,
+                                           "fn":  1,
+                                           "precision":  0.8260869565217391,
+                                           "recall":  0.95,
+                                           "f1":  0.8837209302325582
+                                       },
+                              "DRONE":  {
+                                            "tp":  17,
+                                            "fp":  2,
+                                            "fn":  3,
+                                            "precision":  0.8947368421052632,
+                                            "recall":  0.85,
+                                            "f1":  0.8717948717948718
+                                        }
+                          },
+    "training_package_overlap":  {
+                                     "archive":  "skyguard-colab-package.zip",
+                                     "checkpoint_data":  "/content/skyguard-colab-package/dataset/dataset.yaml",
+                                     "counts":  {
+                                                    "train":  7337,
+                                                    "val":  861,
+                                                    "test":  438
+                                                },
+                                     "sample_size":  40,
+                                     "sample_files_matching_archive_test_by_name_and_sha256":  40,
+                                     "sample_matches_to_archive_train_or_val_sha256":  [
+
+                                                                                       ],
+                                     "sample_matches_to_archive_train_or_val_source_stems":  [
+
+                                                                                             ],
+                                     "limitation":  "The local package matches the checkpoint data directory name. No signed training manifest or original camera/sequence identifiers were supplied."
+                                 },
+    "unfiltered_local_train_test_stem_matches":  177,
+    "external_inputs_required":  [
+                                     "Physical RTSP endpoint configured locally as SKYGUARD_VERIFY_RTSP_URL.",
+                                     "Independent annotated dataset with source or sequence IDs.",
+                                     "Field recording with identity annotations for continuity metrics."
+                                 ],
+    "evidence":  [
+                     "operator-edge-reload.json",
+                     "operator-live-upload-concurrency.json",
+                     "operator-cpu-benchmark.json",
+                     "operator-full-rgb-late-result.json",
+                     "operator-unique-stem-sample.json",
+                     "operator-colab-package-audit.json",
+                     "operator-dataset-overlap.json",
+                     "operator-checkpoint-provenance.json"
+                 ],
+    "tests":  {
+                  "python_passed":  1063,
+                  "react_passed":  66,
+                  "typescript_vite_build":  "completed",
+                  "git_diff_check":  "completed"
+              }
+}

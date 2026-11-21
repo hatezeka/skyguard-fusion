@@ -1,0 +1,13 @@
+{
+  "postgresql_version": "18.0",
+  "revision": "0002",
+  "old_row_preserved": true,
+  "metadata_differences": [],
+  "media_constraints": [
+    "media_frames_nonnegative",
+    "media_kind",
+    "media_status"
+  ],
+  "authenticated_api_roundtrip": true,
+  "media_json_roundtrip": true
+}
