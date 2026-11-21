@@ -1,0 +1,9 @@
+# Keep local credentials, backups and runtime outputs out of deploy commits.
+.env
+.env.*
+deployment.env*
+*.bak
+*.backup*
+*.log
+__pycache__/
+*.pyc

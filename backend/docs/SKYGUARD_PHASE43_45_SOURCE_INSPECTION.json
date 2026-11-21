@@ -1,0 +1,48 @@
+{
+  "date": "2026-11-21",
+  "source_zip_sha256": {
+    "halmstad": "769bfd573e9202bf9042353b8befcf2f34c89af3250df3365bbd5b97a3148f8b",
+    "dut": "03c0ba363de42e37301a3fdec12d4adbfe72333e32fd12a18575fb64d4e7c452"
+  },
+  "halmstad": {
+    "annotated_videos": 650,
+    "all_mp4": 652,
+    "modalities": {
+      "IR": 365,
+      "VISIBLE": 285
+    },
+    "classes": {
+      "AIRPLANE": 133,
+      "BIRD": 130,
+      "DRONE": 271,
+      "HELICOPTER": 116
+    },
+    "unpaired_videos": 0,
+    "splits": {
+      "test": 98,
+      "val": 97,
+      "train": 455
+    }
+  },
+  "source_license": {
+    "halmstad": "CC0-1.0 (LICENSE in ZIP)",
+    "dut_repository": "Apache-2.0 (LICENSE in ZIP)"
+  },
+  "dut_zip_status": "DATASET_NOT_INCLUDED",
+  "verification": {
+    "pairs_mat_video": 650,
+    "missing_pairs": 0,
+    "license_headers_examined": true,
+    "MCOS_bbox_decoding": "NOT_EXECUTED:mcos_decoder is not installed in build runtime",
+    "trained_four_class_model": "NOT_CREATED",
+    "independent_model_accuracy": "NOT_EVALUATED",
+    "real_usb_camera": "NOT_TESTED",
+    "real_drone": "NOT_TESTED"
+  },
+  "new_unit_tests": {
+    "passed": 25,
+    "failed": 0,
+    "scope": "isolated additive phase43_45 package only"
+  },
+  "limitations": "ZIP manifests not a substitute for model validation or existing repository integration."
+}

@@ -68,7 +68,7 @@ def wait_for_stopped(manager):
     raise AssertionError("Session timeout")
 
 
-def test_trajectories_include_drone_bird_and_unknown():
+def test_trajectories_include_only_drone_and_bird_unknown_is_detection_only():
     manager = LiveSessionManager()
 
     with patch(
@@ -90,9 +90,10 @@ def test_trajectories_include_drone_bird_and_unknown():
         for trajectory in snapshot.trajectories
     }
 
-    assert classes == {"drone", "bird", "unknown"}
-
-    assert len(snapshot.trajectories) == 3
+    assert classes == {"drone", "bird"}
+    assert len(snapshot.trajectories) == 2
+    assert {d["class"] for d in snapshot.detections} == {"drone", "bird", "unknown"}
+    assert {t["class"] for t in snapshot.tracks} <= {"drone", "bird"}
 
     assert all(
         len(trajectory["points"]) == 1

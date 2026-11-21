@@ -15,6 +15,8 @@ import json
 from pathlib import Path
 import re
 import sys
+
+from .fixture_hash_v1 import matches_known_fixture
 from typing import Any, Iterable, Mapping
 
 from .mot_benchmark import (
@@ -324,7 +326,9 @@ def run_file(path: str | Path, *, manifest: str | Path | None = None,
     except (OSError, UnicodeError, ValueError) as exc:
         raise StressInputError(str(exc)) from exc
     report['input_sha256'] = _file_hash(source)
-    if synthetic_self_test and report['input_sha256'] not in _BUNDLED_SYNTHETIC_SHA256:
+    if synthetic_self_test and not matches_known_fixture(
+        source, report['input_sha256'], _BUNDLED_SYNTHETIC_SHA256
+    ):
         raise StressInputError('synthetic-self-test is reserved for the bundled verified synthetic fixture')
     report['provenance'] = (
         {'origin': 'bundled_artificial_synthetic_fixture', 'real_video_claim': False}

@@ -92,6 +92,8 @@ class ObjectTracker:
 
         for track_id, track in self._tracks.items():
             for detection_index, detection in enumerate(detections):
+                if track.detection.object_class != detection.object_class:
+                    continue
                 overlap = box_iou(track.detection.bbox, detection.bbox)
                 if overlap >= self.iou_threshold:
                     candidates.append(

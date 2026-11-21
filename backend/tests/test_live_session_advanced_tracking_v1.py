@@ -28,7 +28,8 @@ class FakeDetector:
     def detect(self, image):
         return [
             make_detection(30.0),
-            make_detection(120.0, "unknown"),
+            make_detection(120.0, "bird"),
+            make_detection(220.0, "unknown"),
         ]
 
 
@@ -145,14 +146,17 @@ def test_ambiguous_identity_is_reported_separately():
     assert "track_id" not in ambiguous
 
 
-def test_unknown_class_remains_unknown():
+def test_unknown_class_remains_unknown_without_tracking():
     _, snapshot = run_session(
         tracker=AdvancedTrackingAdapter(
             tracker=ControlledTracker(),
         ),
     )
 
-    assert snapshot.ambiguous_tracks[0]["class"] == "unknown"
+    assert snapshot.ambiguous_tracks[0]["class"] == "bird"
+    assert [d["class"] for d in snapshot.detections] == ["drone", "bird", "unknown"]
+    assert all(t["class"] in ("drone", "bird") for t in snapshot.tracks)
+    assert all(t["object_class"] in ("drone", "bird") for t in snapshot.trajectories)
 
 
 def test_advanced_tracking_produces_jpeg():
@@ -174,4 +178,55 @@ def test_legacy_session_still_works():
 
     assert snapshot.camera_id == "CAM-ADV-001"
     assert len(snapshot.tracks) == 2
+    assert {t["class"] for t in snapshot.tracks} == {"drone", "bird"}
+    assert [d["class"] for d in snapshot.detections] == ["drone", "bird", "unknown"]
     assert snapshot.ambiguous_tracks == []
+
+
+def test_advanced_tracker_receives_only_target_classes():
+    calls = []
+
+    class CaptureTracker:
+        def reset(self):
+            pass
+
+        def update(self, frame_index, detections):
+            calls.append([d.object_class for d in detections])
+            return SimpleNamespace(confirmed=[], ambiguous=[])
+
+    _, snapshot = run_session(
+        tracker=AdvancedTrackingAdapter(tracker=CaptureTracker()),
+    )
+    assert calls == [["drone", "bird"]]
+    assert [d["class"] for d in snapshot.detections] == ["drone", "bird", "unknown"]
+    assert snapshot.tracks == []
+    assert snapshot.trajectories == []
+
+
+def test_tracker_cannot_publish_forged_unknown_track():
+    class NonCompliantTracker:
+        def reset(self):
+            pass
+
+        def update(self, frame_index, detections):
+            return SimpleNamespace(
+                confirmed=[SimpleNamespace(
+                    track_id=999,
+                    detection_index=0,
+                    detection=make_detection(220.0, "unknown"),
+                )],
+                ambiguous=[],
+            )
+
+    manager = LiveSessionManager()
+    with patch("app.detection.live_session.UniversalVideoSource", FakeVideoSource):
+        manager.start(
+            config=object(),
+            detector=FakeDetector(),
+            tracker=AdvancedTrackingAdapter(tracker=NonCompliantTracker()),
+        )
+        snapshot = wait_for_stopped(manager)
+    assert snapshot.state == "error"
+    assert "Non-target tracker output rejected" in snapshot.error
+    assert snapshot.tracks == []
+    assert snapshot.trajectories == []

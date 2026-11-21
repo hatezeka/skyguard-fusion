@@ -17,6 +17,8 @@ import platform
 import re
 import sys
 import time
+
+from .fixture_hash_v1 import matches_known_fixture
 from typing import Any, Callable, Iterable, Mapping
 
 VERSION = 'skyguard.phase42.camera_performance.v1'
@@ -423,7 +425,9 @@ def main(argv: list[str] | None = None) -> int:
                 raise PerformanceInputError('trace input cannot also write a capture trace')
             trace_path = Path(args.trace).expanduser().resolve()
             trace_hash = _sha256(trace_path)
-            synthetic_sample = trace_hash == _BUNDLED_SYNTHETIC_SHA256
+            synthetic_sample = matches_known_fixture(
+                trace_path, trace_hash, frozenset({_BUNDLED_SYNTHETIC_SHA256})
+            )
             if synthetic_sample != args.synthetic_self_test:
                 raise PerformanceInputError('bundled synthetic trace requires --synthetic-self-test; never label arbitrary data synthetic')
             rows = read_trace(trace_path)

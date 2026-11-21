@@ -1,0 +1,15 @@
+# SkyGuard deployment build context exclusions
+.git
+**/.venv
+**/__pycache__
+**/.pytest_cache
+frontend/node_modules
+frontend/dist
+backend/.skyguard_data
+backend/datasets
+backend/runs
+backend/models
+*.pt
+**/.env
+**/logs
+**/.DS_Store

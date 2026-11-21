@@ -62,3 +62,6 @@ Thumbs.db
 /backend/runs/
 /backend/**/*.bak
 /backend/datasets/**/*.cache
+
+# SkyGuard local operational storage (never commit)
+backend/.skyguard_data/

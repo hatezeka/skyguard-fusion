@@ -68,9 +68,11 @@ class LiveSessionManager:
                     started = perf_counter()
                     detections = detector.detect(frame.image)
                     DetectionValidator.validate(frame.image, detections)
+                    # Only target objects enter the production tracker; UNKNOWN remains a detection.
+                    tracked_detections = [d for d in detections if d.object_class in ('drone', 'bird')]
                     tracking_result = tracker.update(
                         frame_index=frame.index,
-                        detections=detections,
+                        detections=tracked_detections,
                     )
                     if (
                         hasattr(tracking_result, "confirmed")
@@ -81,6 +83,14 @@ class LiveSessionManager:
                     else:
                         tracks = tracking_result
                         ambiguous = []
+                    # Fail closed if an injected/custom tracker violates the target-only contract.
+                    # Uncertain airborne objects stay in detections but never in tracks,
+                    # candidate track IDs, trajectories, or drone alerts.
+                    if any(
+                        observation.detection.object_class not in ('drone', 'bird')
+                        for observation in [*tracks, *ambiguous]
+                    ):
+                        raise ValueError('Non-target tracker output rejected: UNKNOWN/OTHER')
                     detection_data = [{'class': d.object_class, 'confidence': d.confidence, 'bbox': {'x': d.bbox.x, 'y': d.bbox.y, 'width': d.bbox.width, 'height': d.bbox.height}} for d in detections]
                     track_data = [
                         {
@@ -186,6 +196,20 @@ class LiveSessionManager:
                         if not self._stop.is_set():
                             self._snapshot = snapshot
                             self._jpeg = encoded.tobytes() if ok else None
+                    # SkyGuard live persistence bridge: queue the original AI
+                    # objects/confirmed tracker bindings, never reconstructed
+                    # from browser polling or guessed bounding-box proximity.
+                    if not self._stop.is_set():
+                        callback = getattr(self, "_skyguard_persistence_capture", None)
+                        if callback is not None:
+                            callback(
+                                snapshot=snapshot,
+                                raw_detections=detections,
+                                confirmed_tracks=tracks,
+                                source_type=config.source_type,
+                                source_location=config.location,
+                                jpeg_bytes=encoded.tobytes() if ok else None,
+                            )
             with self._lock:
                 if self._snapshot.state != 'error':
                     self._snapshot = SessionSnapshot(

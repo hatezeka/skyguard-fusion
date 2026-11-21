@@ -1,0 +1,6 @@
+# Install only if absent in the existing SkyGuard backend environment.
+# Avoid upgrading torch/cuda without checking existing YOLO installation.
+mcos-decoder
+# opencv-python (existing deployment likely already contains OpenCV)
+# ultralytics (existing YOLO deployment likely already contains it)
+# scipy (for exact IDF1 global assignment)

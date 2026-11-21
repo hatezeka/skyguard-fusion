@@ -1,0 +1,25 @@
+/* SkyGuard FUSION Real Map — licensed OpenFreeMap vector tiles via MapLibre. */
+.sg-real-map-view{padding:16px;min-width:0}
+.sg-maplibre-host{height:520px;min-height:360px;position:relative;border:1px solid #28475d;border-radius:9px;background:#10212e;overflow:hidden}
+.sg-map-toolbar{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 11px}
+.sg-map-toolbar button{font:inherit;font-size:11px;color:#b8d1e6;background:#142d41;border:1px solid #2f536b;border-radius:6px;padding:7px 12px;cursor:pointer}
+.sg-map-toolbar button.active{color:#081e29;background:#57bfe7;border-color:#57bfe7;font-weight:700}
+.sg-map-toolbar button:focus-visible{outline:2px solid #84e7ff;outline-offset:2px}
+.sg-map-toolbar button:disabled{opacity:.44;cursor:not-allowed}
+.sg-map-status-info,.sg-map-status-error{font-size:11px;line-height:1.55;padding:8px 0;color:#93b4cc}
+.sg-map-status-error{color:#f3b59d}
+.sg-maplibre-host .maplibregl-ctrl-group{border-radius:7px;background:#102638;box-shadow:0 0 0 1px #32536b}
+.sg-maplibre-host .maplibregl-ctrl-group button{background-color:#d6ebf5}
+.sg-maplibre-host .maplibregl-ctrl-attrib{color:#163142;font-size:10px}
+.sg-maplibre-host .maplibregl-popup-content{background:#0f293b;color:#d6efff;box-shadow:0 4px 25px #0008;border:1px solid #3e708b;border-radius:8px;padding:10px 13px}
+.sg-maplibre-host .maplibregl-popup-tip{border-top-color:#0f293b}
+.sg-maplibre-host .maplibregl-popup-close-button{color:#cde8f9}
+.sg-map-popup{font-size:11px;line-height:1.75;min-width:175px;max-width:300px;overflow-wrap:anywhere}
+.sg-map-popup strong{font-size:12px;letter-spacing:.03em}
+.sg-map-marker{height:26px;min-width:26px;padding:0 5px;color:#081321;border:2px solid #ffffffdd;border-radius:50%;font:700 12px/22px system-ui,sans-serif;text-align:center;cursor:pointer;box-shadow:0 2px 15px #000a}
+.sg-map-marker.sg-map-sensor{background:#40b9f7;color:#102b3c;font-size:18px}
+.sg-map-marker.sg-map-drone{background:#fc875e}
+.sg-map-marker.sg-map-bird{background:#4bc6b4}
+.sg-map-marker.sg-map-selected{outline:3px solid #f7f5bc;outline-offset:2px}
+.sg-map-marker:focus-visible{outline:3px solid #ffffff;outline-offset:3px}
+@media(max-width:800px){.sg-maplibre-host{height:410px;min-height:290px}.sg-real-map-view{padding:11px}.sg-map-toolbar button{font-size:10px;padding:6px 9px}}

@@ -1,0 +1,91 @@
+name: skyguard-fusion
+x-backend-env: &backend-env
+  SKYGUARD_DATABASE_URL: postgresql+psycopg://skyguard:${SKYGUARD_POSTGRES_PASSWORD:?Missing password}@postgres:5432/skyguard
+  SKYGUARD_DB_API_KEY: ${SKYGUARD_DB_API_KEY:?Missing key}
+  SKYGUARD_API_KEY: ${SKYGUARD_DB_API_KEY:?Missing key}
+  SKYGUARD_MAIN_APP: app.main:app
+  SKYGUARD_MODEL_PATH: /opt/skyguard/backend/models/skyguard-drone-bird-t4-v1/best.pt
+  SKYGUARD_EXPECTED_MODEL_SHA256: ${SKYGUARD_EXPECTED_MODEL_SHA256:-}
+  SKYGUARD_MEDIA_ROOT: /opt/skyguard/backend/media
+  PYTHONUNBUFFERED: '1'
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: skyguard
+      POSTGRES_DB: skyguard
+      POSTGRES_PASSWORD: ${SKYGUARD_POSTGRES_PASSWORD:?Missing password}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U skyguard -d skyguard"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    networks: [internal]
+    security_opt: [no-new-privileges:true]
+  migration:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.backend
+    command: ["python", "-m", "alembic", "-c", "skyguard_db.ini", "upgrade", "head"]
+    restart: 'no'
+    environment: *backend-env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [internal]
+  backend:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.backend
+    restart: unless-stopped
+    environment: *backend-env
+    depends_on:
+      migration:
+        condition: service_completed_successfully
+    volumes:
+      - ../backend/models:/opt/skyguard/backend/models:ro
+      - media_data:/opt/skyguard/backend/media
+    networks: [internal, camera_egress]
+    security_opt: [no-new-privileges:true]
+  gateway:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.gateway
+    restart: unless-stopped
+    environment:
+      SKYGUARD_BACKEND_ORIGIN: http://backend:8000
+      SKYGUARD_STATIC_ROOT: /opt/skyguard/static
+      SKYGUARD_DB_API_KEY: ${SKYGUARD_DB_API_KEY:?Missing key}
+      SKYGUARD_OPERATOR_HASH: ${SKYGUARD_OPERATOR_HASH:?Missing hash}
+      SKYGUARD_SESSION_SIGNING_KEY: ${SKYGUARD_SESSION_SIGNING_KEY:?Missing signing key}
+      SKYGUARD_PUBLIC_ORIGIN: ${SKYGUARD_PUBLIC_ORIGIN:?Missing origin}
+      SKYGUARD_SECURE_COOKIES: ${SKYGUARD_SECURE_COOKIES:-false}
+    depends_on: [backend]
+    networks: [internal]
+    security_opt: [no-new-privileges:true]
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - ${SKYGUARD_HTTP_BIND:-127.0.0.1:8088:80}
+      - ${SKYGUARD_HTTPS_BIND:-127.0.0.1:4443:443}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on: [gateway]
+    networks: [internal, web]
+    security_opt: [no-new-privileges:true]
+networks:
+  internal:
+    internal: true
+  web: {}
+  camera_egress: {} # Private RTSP camera reachability: never expose backend host ports
+volumes:
+  postgres_data: {}
+  caddy_data: {}
+  caddy_config: {}
+  media_data: {}
