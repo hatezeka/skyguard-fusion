@@ -231,7 +231,8 @@ class LiveSessionManager:
                     self._snapshot.detections,
                     self._snapshot.tracks,
                     self._snapshot.processing_seconds,
-                    f'{type(exc).__name__}: {exc}',
+                    ('RTSP stream unavailable' if getattr(config, 'source_type', None) == 'rtsp'
+                     else f'{type(exc).__name__}: {exc}'),
                     camera_id=self._camera_id, session_id=self._session_id,
                     ambiguous_tracks=self._snapshot.ambiguous_tracks,
                     trajectories=self._snapshot.trajectories,

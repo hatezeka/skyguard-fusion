@@ -1,0 +1,14 @@
+{
+  "previous_backend_pid": 27940,
+  "backend_pid": 4984,
+  "frontend_pid": 29556,
+  "database": "backend\\.skyguard_data\\skyguard.sqlite3",
+  "database_configuration": "Default SQLite path; SKYGUARD_DATABASE_URL absent",
+  "backup": "backend\\.skyguard_data\\skyguard-backup-before-auth-20261121-200612.sqlite3",
+  "revision": "0002",
+  "prior_media_upload_http": 503,
+  "media_health_through_vite_http": 200,
+  "configured_model_found": true,
+  "live_frame_through_vite_http": 200,
+  "live_state": "idle"
+}

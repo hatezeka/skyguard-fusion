@@ -1,0 +1,317 @@
+{
+  "checkpoint_sha256": "eee9ea5271fa0e3505e3ff103d4e51202f234445e4c19c3482fa7aa00a122901",
+  "sample_size": 20,
+  "iou_threshold": 0.5,
+  "sampling": "First sorted single-object annotation files per class in the supplied test partition",
+  "limitation": "Selected test sample. Source disjointness and field accuracy were not independently established.",
+  "by_class": {
+    "BIRD": {
+      "tp": 10,
+      "fp": 3,
+      "fn": 0,
+      "precision": 0.7692307692307693,
+      "recall": 1.0,
+      "f1": 0.8695652173913043
+    },
+    "DRONE": {
+      "tp": 7,
+      "fp": 2,
+      "fn": 3,
+      "precision": 0.7777777777777778,
+      "recall": 0.7,
+      "f1": 0.7368421052631579
+    }
+  },
+  "by_class_and_size": {
+    "BIRD/large": {
+      "tp": 10,
+      "fp": 1,
+      "fn": 0,
+      "precision": 0.9090909090909091,
+      "recall": 1.0,
+      "f1": 0.9523809523809523
+    },
+    "BIRD/medium": {
+      "tp": 0,
+      "fp": 1,
+      "fn": 0,
+      "precision": 0.0,
+      "recall": null,
+      "f1": 0.0
+    },
+    "BIRD/small": {
+      "tp": 0,
+      "fp": 1,
+      "fn": 0,
+      "precision": 0.0,
+      "recall": null,
+      "f1": 0.0
+    },
+    "DRONE/large": {
+      "tp": 1,
+      "fp": 1,
+      "fn": 0,
+      "precision": 0.5,
+      "recall": 1.0,
+      "f1": 0.6666666666666666
+    },
+    "DRONE/medium": {
+      "tp": 5,
+      "fp": 1,
+      "fn": 2,
+      "precision": 0.8333333333333334,
+      "recall": 0.7142857142857143,
+      "f1": 0.7692307692307693
+    },
+    "DRONE/small": {
+      "tp": 1,
+      "fp": 0,
+      "fn": 1,
+      "precision": 1.0,
+      "recall": 0.5,
+      "f1": 0.6666666666666666
+    }
+  },
+  "samples": [
+    {
+      "image": "000000000004_jpg.rf.958aa19bdfc5545246a5341b45a4254d.jpg",
+      "class_name": "DRONE",
+      "scores": {
+        "DRONE/medium": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        }
+      }
+    },
+    {
+      "image": "000000000082_jpg.rf.f731baea00c1c451cb4bcb1b68131184.jpg",
+      "class_name": "DRONE",
+      "scores": {
+        "DRONE/medium": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        }
+      }
+    },
+    {
+      "image": "000000000089_jpg.rf.c0f52b9a47bd9978481952e93c53c660.jpg",
+      "class_name": "DRONE",
+      "scores": {
+        "BIRD/large": {
+          "tp": 0,
+          "fp": 1,
+          "fn": 0
+        },
+        "BIRD/small": {
+          "tp": 0,
+          "fp": 1,
+          "fn": 0
+        },
+        "DRONE/small": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        }
+      }
+    },
+    {
+      "image": "000000000107_jpg.rf.c8a2f66728b03e1360407729af7b3321.jpg",
+      "class_name": "DRONE",
+      "scores": {
+        "BIRD/medium": {
+          "tp": 0,
+          "fp": 1,
+          "fn": 0
+        },
+        "DRONE/medium": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        }
+      }
+    },
+    {
+      "image": "000000000119_jpg.rf.2d36fb4b493859959a3c641788c0ac2d.jpg",
+      "class_name": "DRONE",
+      "scores": {
+        "DRONE/large": {
+          "tp": 0,
+          "fp": 1,
+          "fn": 0
+        },
+        "DRONE/small": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        }
+      }
+    },
+    {
+      "image": "000000000175_jpg.rf.82f3ac8e89dd8ee7f296a11b1fa7dd72.jpg",
+      "class_name": "DRONE",
+      "scores": {
+        "DRONE/large": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        }
+      }
+    },
+    {
+      "image": "000000000251_jpg.rf.96dbadb018c2897ac9410cbaf09cee7d.jpg",
+      "class_name": "DRONE",
+      "scores": {
+        "DRONE/medium": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        }
+      }
+    },
+    {
+      "image": "000000000345_jpg.rf.ab50676fe57b40b79b377daf2ff8a89a.jpg",
+      "class_name": "DRONE",
+      "scores": {
+        "DRONE/medium": {
+          "tp": 0,
+          "fp": 1,
+          "fn": 1
+        }
+      }
+    },
+    {
+      "image": "000000000372_jpg.rf.2e9c1c003305ec29cee6a5b359b31f3c.jpg",
+      "class_name": "DRONE",
+      "scores": {
+        "DRONE/medium": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        }
+      }
+    },
+    {
+      "image": "000000000407_jpg.rf.2022c4c50d743dc6875f33ed8efb4358.jpg",
+      "class_name": "DRONE",
+      "scores": {
+        "DRONE/medium": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        }
+      }
+    },
+    {
+      "image": "105_jpg.rf.6f2b87affa2033f074057e876228972f.jpg",
+      "class_name": "BIRD",
+      "scores": {
+        "BIRD/large": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        }
+      }
+    },
+    {
+      "image": "109_jpg.rf.a0787643ab73e0d9fdf6a51ebe728a3b.jpg",
+      "class_name": "BIRD",
+      "scores": {
+        "BIRD/large": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        }
+      }
+    },
+    {
+      "image": "111_jpg.rf.72cd4bf5a40dd7ae7142c2605d0352bc.jpg",
+      "class_name": "BIRD",
+      "scores": {
+        "BIRD/large": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        }
+      }
+    },
+    {
+      "image": "124_jpg.rf.45e891c42857b0c905723e7007949aa9.jpg",
+      "class_name": "BIRD",
+      "scores": {
+        "BIRD/large": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        }
+      }
+    },
+    {
+      "image": "147_jpg.rf.3f5b7613204d817496cf15da154c8afa.jpg",
+      "class_name": "BIRD",
+      "scores": {
+        "BIRD/large": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        }
+      }
+    },
+    {
+      "image": "148_jpg.rf.92d1cdf8223266af7579829d6f41d31e.jpg",
+      "class_name": "BIRD",
+      "scores": {
+        "BIRD/large": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        }
+      }
+    },
+    {
+      "image": "151_jpg.rf.462895aded6e774c8f3ca3ecccb5df50.jpg",
+      "class_name": "BIRD",
+      "scores": {
+        "BIRD/large": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        }
+      }
+    },
+    {
+      "image": "160_jpg.rf.842fa583331d10a83a53740596fbf666.jpg",
+      "class_name": "BIRD",
+      "scores": {
+        "BIRD/large": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        }
+      }
+    },
+    {
+      "image": "172_jpg.rf.5355d1318de80e9372abc53d447411e8.jpg",
+      "class_name": "BIRD",
+      "scores": {
+        "BIRD/large": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        }
+      }
+    },
+    {
+      "image": "175_jpg.rf.8ad25d46910af455392a3f0cc5c87b01.jpg",
+      "class_name": "BIRD",
+      "scores": {
+        "BIRD/large": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        }
+      }
+    }
+  ]
+}

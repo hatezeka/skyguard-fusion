@@ -1,0 +1,39 @@
+{
+  "sqlite_revision": "0002",
+  "model_sha256": "eee9ea5271fa0e3505e3ff103d4e51202f234445e4c19c3482fa7aa00a122901",
+  "omp_num_threads": "4",
+  "/health": 200,
+  "/cameras": 200,
+  "/sessions": 200,
+  "/benchmarks": 200,
+  "/audit": 200,
+  "/live/frame": 200,
+  "live_state": "idle",
+  "/live/status": 200,
+  "/live/health": 200,
+  "dashboard_session_reads": 7,
+  "auth": {
+    "missing_server_key": 503,
+    "missing_bearer": 401,
+    "invalid_bearer": 403
+  },
+  "physical_usb": {
+    "index": 0,
+    "frame_index": 2,
+    "real_jpeg": true,
+    "latency_ms": 1347.6399998180568,
+    "persisted_frames": 3,
+    "detections_in_sample": 1,
+    "tracks_in_sample": 0,
+    "recorder": {
+      "status": "ok",
+      "ingested_frames": 3,
+      "duplicate_frames": 0,
+      "lost_frames": 0,
+      "errors": 0,
+      "last_error": null,
+      "queued_frames": 0,
+      "capture_timestamp_semantics": "host_publication_utc_not_sensor_timestamp"
+    }
+  }
+}

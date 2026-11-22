@@ -1,0 +1,16 @@
+{
+  "postgresql_version": "18.0",
+  "revision": "0002",
+  "old_row_preserved": true,
+  "metadata_differences": [
+    "('remove_index', Index('ix_sg_media_jobs_created_at', Column('created_at', TIMESTAMP(timezone=True), table=<sg_media_jobs>, nullable=False)))",
+    "('remove_table', Table('sg_media_jobs', MetaData(), Column('id', VARCHAR(length=36), table=<sg_media_jobs>, primary_key=True, nullable=False), Column('kind', VARCHAR(length=8), table=<sg_media_jobs>, nullable=False), Column('status', VARCHAR(length=20), table=<sg_media_jobs>, nullable=False), Column('source_sha256', VARCHAR(length=64), table=<sg_media_jobs>, nullable=False), Column('source_file', VARCHAR(length=100), table=<sg_media_jobs>, nullable=False), Column('session_id', VARCHAR(length=36), ForeignKey('sg_sessions.id'), table=<sg_media_jobs>), Column('frames_processed', INTEGER(), table=<sg_media_jobs>, nullable=False, server_default=DefaultClause(<sqlalchemy.sql.elements.TextClause object at 0x0000023F41EB8F10>, for_update=False)), Column('summary', JSON(astext_type=Text()), table=<sg_media_jobs>, nullable=False), Column('error', VARCHAR(length=512), table=<sg_media_jobs>), Column('created_at', TIMESTAMP(timezone=True), table=<sg_media_jobs>, nullable=False), Column('updated_at', TIMESTAMP(timezone=True), table=<sg_media_jobs>, nullable=False), schema=None))"
+  ],
+  "media_constraints": [
+    "media_frames_nonnegative",
+    "media_kind",
+    "media_status"
+  ],
+  "authenticated_api_roundtrip": true,
+  "media_json_roundtrip": true
+}

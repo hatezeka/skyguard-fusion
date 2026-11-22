@@ -1,0 +1,145 @@
+{
+  "sqlite_revision": "0002",
+  "model_sha256": "eee9ea5271fa0e3505e3ff103d4e51202f234445e4c19c3482fa7aa00a122901",
+  "omp_num_threads": "4",
+  "/health": 200,
+  "/cameras": 200,
+  "/sessions": 200,
+  "/benchmarks": 200,
+  "/audit": 200,
+  "/live/frame": 200,
+  "live_state": "idle",
+  "/live/status": 200,
+  "/live/health": 200,
+  "dashboard_session_reads": 7,
+  "auth": {
+    "missing_server_key": 503,
+    "missing_bearer": 401,
+    "invalid_bearer": 403
+  },
+  "media": [
+    {
+      "kind": "IMAGE",
+      "file": "105_jpg.rf.6f2b87affa2033f074057e876228972f.jpg",
+      "job_id": "fd29aa4ac5cc4fd9803b614cfbb59045",
+      "frames": 1,
+      "upload_ms": 29.77,
+      "total_ms": 24529.61,
+      "artifact_bytes": 390573,
+      "artifact_type": "image/png",
+      "detections_per_frame_total": {
+        "BIRD": 1
+      },
+      "conflict_review_total": 0,
+      "unique_confirmed_tracks": {},
+      "mean_inference_pipeline_ms": 11090.77,
+      "track_paths_px": [],
+      "scientific_accuracy": "NOT_MEASURED_WITH_GROUND_TRUTH",
+      "note": "Per-frame inference; tracking IDs require verified tracking adapter. No GPS or range inferred.",
+      "prediction_url": "/api/media/jobs/fd29aa4ac5cc4fd9803b614cfbb59045/prediction",
+      "model_classes": {
+        "0": "DRONE",
+        "1": "BIRD"
+      },
+      "unknown_trained": false,
+      "latency_ms_p50": 11090.765099972486,
+      "latency_ms_p95": 11090.765099972486,
+      "image_detections": [
+        {
+          "confidence": 0.7350743412971497,
+          "label": "BIRD",
+          "merged_proposals": 1,
+          "pass_name": "consensus",
+          "track_id": null,
+          "verdict_status": "CONSENSUS",
+          "vote_evidence": [
+            [
+              "BIRD",
+              0.7350743412971497
+            ]
+          ],
+          "xyxy": [
+            142.92819213867188,
+            181.75070190429688,
+            312.33746337890625,
+            286.2295227050781
+          ]
+        }
+      ],
+      "image_annotation_comparison": [
+        {
+          "classification": "BIRD",
+          "bbox": [
+            143.5,
+            175.5,
+            310.5,
+            285.5
+          ],
+          "max_correct_class_iou": 0.9243784944225895
+        }
+      ]
+    },
+    {
+      "kind": "VIDEO",
+      "file": "source-excerpt.mp4",
+      "job_id": "a992c3b953c54cd8831c3958fcb62930",
+      "frames": 4,
+      "upload_ms": 17.58,
+      "total_ms": 9329.9,
+      "artifact_bytes": 23827,
+      "artifact_type": "video/webm",
+      "detections_per_frame_total": {
+        "DRONE": 4
+      },
+      "conflict_review_total": 0,
+      "unique_confirmed_tracks": {},
+      "mean_inference_pipeline_ms": 2169.85,
+      "track_paths_px": [],
+      "scientific_accuracy": "NOT_MEASURED_WITH_GROUND_TRUTH",
+      "note": "Per-frame inference; tracking IDs require verified tracking adapter. No GPS or range inferred.",
+      "prediction_url": "/api/media/jobs/a992c3b953c54cd8831c3958fcb62930/prediction",
+      "model_classes": {
+        "0": "DRONE",
+        "1": "BIRD"
+      },
+      "unknown_trained": false,
+      "latency_ms_p50": 1253.0037999385968,
+      "latency_ms_p95": 5610.309599898756
+    }
+  ],
+  "headless_browser": {
+    "databaseConnected": true,
+    "tacticalMap": true,
+    "geographicCanvas": true,
+    "previews": [
+      "IMAGE",
+      "VIDEO"
+    ],
+    "webmDecoded": true
+  },
+  "video_excerpt": {
+    "source_file": "backend\\reports\\targeted_v1_20261121_153801_4778438\\V_DRONE_003\\source.mp4",
+    "first_frames": 4
+  },
+  "browser_frame_api": {
+    "frame_index": 0,
+    "latency_ms": 773.48,
+    "detections": [
+      {
+        "classification": "BIRD",
+        "verdict_status": "CONSENSUS",
+        "track_id": null,
+        "confidence": 0.7350743412971497,
+        "bbox": [
+          142.92819213867188,
+          181.75070190429688,
+          312.33746337890625,
+          286.2295227050781
+        ],
+        "range_m": null,
+        "latitude": null,
+        "longitude": null
+      }
+    ]
+  }
+}

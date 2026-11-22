@@ -1,0 +1,7 @@
+{
+  "data": "/content/skyguard-colab-package/dataset/dataset.yaml",
+  "epochs": 15,
+  "imgsz": 640,
+  "name": "drone_bird_t4_v1",
+  "has_training_file_manifest": false
+}

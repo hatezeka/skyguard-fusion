@@ -1,0 +1,299 @@
+{
+  "sqlite_revision": "0002",
+  "model_sha256": "eee9ea5271fa0e3505e3ff103d4e51202f234445e4c19c3482fa7aa00a122901",
+  "omp_num_threads": "4",
+  "/health": 200,
+  "/cameras": 200,
+  "/sessions": 200,
+  "/benchmarks": 200,
+  "/audit": 200,
+  "/live/frame": 200,
+  "live_state": "idle",
+  "/live/status": 200,
+  "/live/health": 200,
+  "dashboard_session_reads": 7,
+  "auth": {
+    "missing_server_key": 503,
+    "missing_bearer": 401,
+    "invalid_bearer": 403
+  },
+  "headless_browser": {
+    "databaseConnected": true,
+    "tacticalMap": true,
+    "geographicCanvas": true,
+    "geographicTiles": 4,
+    "mapError": null,
+    "viewports": [
+      {
+        "device": "phone",
+        "page": "Command center",
+        "viewport": 360,
+        "content": 360,
+        "heading": "Airspace intelligence",
+        "scrollableTables": true,
+        "primaryControlsFit": true
+      },
+      {
+        "device": "phone",
+        "page": "Live observation",
+        "viewport": 360,
+        "content": 360,
+        "heading": "Live observation",
+        "scrollableTables": true,
+        "primaryControlsFit": true
+      },
+      {
+        "device": "phone",
+        "page": "Object tracking",
+        "viewport": 360,
+        "content": 360,
+        "heading": "Object tracking",
+        "scrollableTables": true,
+        "primaryControlsFit": true
+      },
+      {
+        "device": "phone",
+        "page": "Dual map views",
+        "viewport": 360,
+        "content": 360,
+        "heading": "Dual map views",
+        "scrollableTables": true,
+        "primaryControlsFit": true
+      },
+      {
+        "device": "phone",
+        "page": "Alert management",
+        "viewport": 360,
+        "content": 360,
+        "heading": "Alert management",
+        "scrollableTables": true,
+        "primaryControlsFit": true
+      },
+      {
+        "device": "phone",
+        "page": "Evidence ledger",
+        "viewport": 360,
+        "content": 360,
+        "heading": "Evidence ledger",
+        "scrollableTables": true,
+        "primaryControlsFit": true
+      },
+      {
+        "device": "phone",
+        "page": "Performance",
+        "viewport": 360,
+        "content": 360,
+        "heading": "Performance telemetry",
+        "scrollableTables": true,
+        "primaryControlsFit": true
+      },
+      {
+        "device": "phone",
+        "page": "Camera registry",
+        "viewport": 360,
+        "content": 360,
+        "heading": "Camera registry",
+        "scrollableTables": true,
+        "primaryControlsFit": true
+      },
+      {
+        "device": "phone",
+        "page": "Scientific validation",
+        "viewport": 360,
+        "content": 360,
+        "heading": "Scientific validation",
+        "scrollableTables": true,
+        "primaryControlsFit": true
+      },
+      {
+        "device": "phone",
+        "page": "Integration settings",
+        "viewport": 360,
+        "content": 360,
+        "heading": "Integration settings",
+        "scrollableTables": true,
+        "primaryControlsFit": true
+      },
+      {
+        "device": "tablet",
+        "page": "Command center",
+        "viewport": 768,
+        "content": 768,
+        "heading": "Airspace intelligence",
+        "scrollableTables": true,
+        "primaryControlsFit": true
+      },
+      {
+        "device": "tablet",
+        "page": "Live observation",
+        "viewport": 768,
+        "content": 768,
+        "heading": "Live observation",
+        "scrollableTables": true,
+        "primaryControlsFit": true
+      },
+      {
+        "device": "tablet",
+        "page": "Object tracking",
+        "viewport": 768,
+        "content": 768,
+        "heading": "Object tracking",
+        "scrollableTables": true,
+        "primaryControlsFit": true
+      },
+      {
+        "device": "tablet",
+        "page": "Dual map views",
+        "viewport": 768,
+        "content": 768,
+        "heading": "Dual map views",
+        "scrollableTables": true,
+        "primaryControlsFit": true
+      },
+      {
+        "device": "tablet",
+        "page": "Alert management",
+        "viewport": 768,
+        "content": 768,
+        "heading": "Alert management",
+        "scrollableTables": true,
+        "primaryControlsFit": true
+      },
+      {
+        "device": "tablet",
+        "page": "Evidence ledger",
+        "viewport": 768,
+        "content": 768,
+        "heading": "Evidence ledger",
+        "scrollableTables": true,
+        "primaryControlsFit": true
+      },
+      {
+        "device": "tablet",
+        "page": "Performance",
+        "viewport": 768,
+        "content": 768,
+        "heading": "Performance telemetry",
+        "scrollableTables": true,
+        "primaryControlsFit": true
+      },
+      {
+        "device": "tablet",
+        "page": "Camera registry",
+        "viewport": 768,
+        "content": 768,
+        "heading": "Camera registry",
+        "scrollableTables": true,
+        "primaryControlsFit": true
+      },
+      {
+        "device": "tablet",
+        "page": "Scientific validation",
+        "viewport": 768,
+        "content": 768,
+        "heading": "Scientific validation",
+        "scrollableTables": true,
+        "primaryControlsFit": true
+      },
+      {
+        "device": "tablet",
+        "page": "Integration settings",
+        "viewport": 768,
+        "content": 768,
+        "heading": "Integration settings",
+        "scrollableTables": true,
+        "primaryControlsFit": true
+      },
+      {
+        "device": "desktop",
+        "page": "Command center",
+        "viewport": 1425,
+        "content": 1425,
+        "heading": "Airspace intelligence",
+        "scrollableTables": true,
+        "primaryControlsFit": true
+      },
+      {
+        "device": "desktop",
+        "page": "Live observation",
+        "viewport": 1425,
+        "content": 1425,
+        "heading": "Live observation",
+        "scrollableTables": true,
+        "primaryControlsFit": true
+      },
+      {
+        "device": "desktop",
+        "page": "Object tracking",
+        "viewport": 1425,
+        "content": 1425,
+        "heading": "Object tracking",
+        "scrollableTables": true,
+        "primaryControlsFit": true
+      },
+      {
+        "device": "desktop",
+        "page": "Dual map views",
+        "viewport": 1425,
+        "content": 1425,
+        "heading": "Dual map views",
+        "scrollableTables": true,
+        "primaryControlsFit": true
+      },
+      {
+        "device": "desktop",
+        "page": "Alert management",
+        "viewport": 1440,
+        "content": 1440,
+        "heading": "Alert management",
+        "scrollableTables": true,
+        "primaryControlsFit": true
+      },
+      {
+        "device": "desktop",
+        "page": "Evidence ledger",
+        "viewport": 1440,
+        "content": 1440,
+        "heading": "Evidence ledger",
+        "scrollableTables": true,
+        "primaryControlsFit": true
+      },
+      {
+        "device": "desktop",
+        "page": "Performance",
+        "viewport": 1440,
+        "content": 1440,
+        "heading": "Performance telemetry",
+        "scrollableTables": true,
+        "primaryControlsFit": true
+      },
+      {
+        "device": "desktop",
+        "page": "Camera registry",
+        "viewport": 1440,
+        "content": 1440,
+        "heading": "Camera registry",
+        "scrollableTables": true,
+        "primaryControlsFit": true
+      },
+      {
+        "device": "desktop",
+        "page": "Scientific validation",
+        "viewport": 1425,
+        "content": 1425,
+        "heading": "Scientific validation",
+        "scrollableTables": true,
+        "primaryControlsFit": true
+      },
+      {
+        "device": "desktop",
+        "page": "Integration settings",
+        "viewport": 1425,
+        "content": 1425,
+        "heading": "Integration settings",
+        "scrollableTables": true,
+        "primaryControlsFit": true
+      }
+    ]
+  }
+}

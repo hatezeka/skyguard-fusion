@@ -30,3 +30,7 @@ app.include_router(
     geo_router,
     dependencies=[Depends(require_api_key)],
 )
+
+# Original SkyGuard operator dashboard upload routes (API-key protected)
+from app.api.media_upload import router as media_upload_router
+app.include_router(media_upload_router, dependencies=[Depends(require_api_key)])

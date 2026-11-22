@@ -15,6 +15,6 @@ export type Audit = {id:string;action?:string;created_at?:string;[key:string]:un
 export type Summary = {session_id:string;frames:number;tracks:number;alerts:number;detections:Partial<Record<ObjClass,number>>;note:string}
 export type LiveTrack = {track_id:string;classification:'DRONE'|'BIRD';confidence:number|null;bbox:[number,number,number,number];frame_index:number}
 export type LiveDetection = {classification:ObjClass;confidence:number|null;bbox:[number,number,number,number];track_id:string|null}
-export type LiveSnapshot = {frame_index:number|null;captured_at:string|null;fps:number|null;latency_ms:number|null;tracks:LiveTrack[];detections:LiveDetection[];source:string;image_mime?:string|null;image_base64?:string|null;recorder?:{status:string;lost_frames:number;queued_frames:number;last_error:string|null}}
+export type LiveSnapshot = {state?:string;frame_index:number|null;captured_at:string|null;fps:number|null;latency_ms:number|null;tracks:LiveTrack[];detections:LiveDetection[];source:string;image_mime?:string|null;image_base64?:string|null;recorder?:{status:string;lost_frames:number;queued_frames:number;last_error:string|null}}
 export type Dataset = {cameras:Camera[];sessions:Session[];detections:Detection[];tracks:Track[];geo:Geo[];alerts:Alert[];performance:Performance[];evidence:Evidence[];benchmarks:Benchmark[];audit:Audit[];summary:Summary|null}
 export const emptyDataset:Dataset = {cameras:[],sessions:[],detections:[],tracks:[],geo:[],alerts:[],performance:[],evidence:[],benchmarks:[],audit:[],summary:null}

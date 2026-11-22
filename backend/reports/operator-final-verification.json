@@ -1,0 +1,139 @@
+{
+    "branch":  "feature/skyguard-final-engineering",
+    "original_database_changed":  false,
+    "sqlite":  {
+                   "revision":  "0002",
+                   "quick_check":  "ok",
+                   "foreign_key_violations":  0,
+                   "integration_used_backup":  true
+               },
+    "tests":  {
+                  "python_passed":  1063,
+                  "react_passed":  65,
+                  "typescript_vite_build":  "completed",
+                  "git_diff_check":  "completed"
+              },
+    "browser":  {
+                    "databaseConnected":  true,
+                    "tacticalMap":  true,
+                    "geographicCanvas":  true,
+                    "previews":  [
+                                     "IMAGE",
+                                     "VIDEO"
+                                 ],
+                    "mediaResultRestored":  true,
+                    "webmDecoded":  true
+                },
+    "usb":  {
+                "index":  0,
+                "frame_index":  2,
+                "real_jpeg":  true,
+                "latency_ms":  1347.6399998180568,
+                "persisted_frames":  3,
+                "detections_in_sample":  1,
+                "tracks_in_sample":  0,
+                "recorder":  {
+                                 "status":  "ok",
+                                 "ingested_frames":  3,
+                                 "duplicate_frames":  0,
+                                 "lost_frames":  0,
+                                 "errors":  0,
+                                 "last_error":  null,
+                                 "queued_frames":  0,
+                                 "capture_timestamp_semantics":  "host_publication_utc_not_sensor_timestamp"
+                             }
+            },
+    "tracking_on_recorded_source":  {
+                                        "classification":  "DRONE",
+                                        "observations":  3,
+                                        "frame_indexes":  [
+                                                              2,
+                                                              3,
+                                                              4
+                                                          ]
+                                    },
+    "video_progress":  {
+                           "kind":  "VIDEO",
+                           "file":  "source-excerpt.mp4",
+                           "job_id":  "988f652d466a4857ac7afa82248df0a3",
+                           "frames_observed_while_running":  15,
+                           "frames":  20,
+                           "upload_ms":  16.58,
+                           "total_ms":  40988.29,
+                           "artifact_bytes":  61663,
+                           "artifact_type":  "video/webm",
+                           "detections_per_frame_total":  {
+                                                              "DRONE":  20
+                                                          },
+                           "conflict_review_total":  0,
+                           "unique_confirmed_tracks":  {
+
+                                                       },
+                           "mean_inference_pipeline_ms":  1976.67,
+                           "track_paths_px":  [
+
+                                              ],
+                           "scientific_accuracy":  "NOT_MEASURED_WITH_GROUND_TRUTH",
+                           "note":  "Per-frame inference; tracking IDs require verified tracking adapter. No GPS or range inferred.",
+                           "prediction_url":  "/api/media/jobs/988f652d466a4857ac7afa82248df0a3/prediction",
+                           "model_classes":  {
+                                                 "0":  "DRONE",
+                                                 "1":  "BIRD"
+                                             },
+                           "unknown_trained":  false,
+                           "latency_ms_p50":  1160.358449909836,
+                           "latency_ms_p95":  7767.91869988665
+                       },
+    "full_rgb_video":  {
+                           "source":  "V_DRONE_003/source.mp4",
+                           "source_frames":  313,
+                           "frames_processed":  313,
+                           "mean_inference_ms":  3067.755290090639,
+                           "p50_ms":  2208.35809991695,
+                           "p95_ms":  8770.357399946079,
+                           "artifact_bytes":  973790,
+                           "observed_job":  {
+                                                "status":  "DONE",
+                                                "frames_processed":  313
+                                            },
+                           "inference_report":  null,
+                           "verification":  "Original HTTP polling reached its deadline; this observation followed the same worker after the deadline."
+                       },
+    "annotated_sample":  {
+                             "size":  20,
+                             "iou_threshold":  0.5,
+                             "classes":  {
+                                             "BIRD":  {
+                                                          "tp":  10,
+                                                          "fp":  3,
+                                                          "fn":  0,
+                                                          "precision":  0.7692307692307693,
+                                                          "recall":  1.0,
+                                                          "f1":  0.8695652173913043
+                                                      },
+                                             "DRONE":  {
+                                                           "tp":  7,
+                                                           "fp":  2,
+                                                           "fn":  3,
+                                                           "precision":  0.7777777777777778,
+                                                           "recall":  0.7,
+                                                           "f1":  0.7368421052631579
+                                                       }
+                                         }
+                         },
+    "remaining":  [
+                      "Physical RTSP stream and geographic tile provider availability were not verified.",
+                      "Tracking was verified on a recorded source using the actual live manager. Field identity continuity and ground-truthed tracking metrics remain unmeasured.",
+                      "Annotated sample results are from 20 selected test images. Field accuracy and source disjointness remain unverified.",
+                      "The full 313-frame job completed in SQLite after HTTP verification reached the 420-second deadline. Long clips have high CPU latency.",
+                      "The HTTP, browser, and camera integration tests used isolated ports. The pre-existing service on port 8000 was left in place."
+                  ],
+    "evidence":  [
+                     "operator-integration-edge-final.json",
+                     "operator-live-usb.json",
+                     "operator-live-tracking-replay.json",
+                     "operator-video-progress.json",
+                     "operator-full-rgb-late-result.json",
+                     "operator-annotated-sample.json"
+                 ]
+}

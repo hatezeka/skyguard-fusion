@@ -137,11 +137,13 @@ def start_live(request: StartRequest):
             registry().get(request.camera_id) if request.camera_id is not None else None
         )
 
-        if not MODEL_PATH.is_file():
+        configured_path = os.environ.get("SKYGUARD_MODEL_PATH")
+        model_path = Path(configured_path) if configured_path else MODEL_PATH
+        if not model_path.is_file():
             raise HTTPException(503, "YOLO model unavailable")
 
         detector = YOLODetectionEngine(
-            model_path=str(MODEL_PATH),
+            model_path=str(model_path),
             confidence_threshold=request.confidence,
         )
 
