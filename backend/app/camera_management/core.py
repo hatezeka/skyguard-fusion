@@ -146,11 +146,76 @@ class CameraRegistry:
           'verified_at':verified_at or datetime.now(timezone.utc).isoformat()}
         return self._commit(camera_id,p)
 
-    def set_orientation(self,camera_id,yaw_deg,pitch_deg,roll_deg,source):
+    def import_usb_calibration(self, camera_id, candidate, optical_setup):
+        import hashlib
+
+        profile = self.get(camera_id)
+        if profile["source_type"] != "usb" or not optical_setup.strip():
+            raise CameraError("USB camera and explicit optical setup required")
+        try:
+            width, height = candidate["image_size_px"]
+            matrix = candidate["camera_matrix"]
+            distortion = candidate["distortion_coefficients"]
+            rms = candidate["global_reprojection_rms_px"]
+            if len(distortion) == 1 and isinstance(distortion[0], list):
+                distortion = distortion[0]
+            fx, _, cx = matrix[0]
+            _, fy, cy = matrix[1]
+            if matrix[0][1] != 0 or matrix[1][0] != 0 or matrix[2] != [0, 0, 1]:
+                raise ValueError("Invalid camera matrix")
+            if type(width) is not int or type(height) is not int:
+                raise ValueError("Invalid image size")
+            number(cx, "cx", 0, width - 1)
+            number(cy, "cy", 0, height - 1)
+            number(rms, "reprojection RMS", 0)
+        except (KeyError, IndexError, TypeError, ValueError) as exc:
+            raise CameraError("Invalid USB calibration profile") from exc
+        number(fx, "fx", 0, strict_low=True)
+        number(fy, "fy", 0, strict_low=True)
+        if not isinstance(distortion, list) or len(distortion) != 5:
+            raise CameraError("Five distortion coefficients required")
+        for coefficient in distortion:
+            number(coefficient, "distortion")
+        warning = candidate.get("quality_warning")
+        if warning is not None and type(warning) is not bool:
+            raise CameraError("Invalid quality warning")
+        if (width, height) not in ((640, 480), (1280, 720), (1920, 1080)):
+            raise CameraError("Unsupported USB calibration resolution")
+        calibration = {
+            "status": "CALIBRATED",
+            "validation_status": "CALIBRATED_UNVALIDATED",
+            "verified_at": datetime.now(timezone.utc).isoformat(),
+            "resolution": [width, height],
+            "capture_backend": "DSHOW",
+            "capture_codec": "MJPG",
+            "optical_setup": optical_setup.strip(),
+            "reprojection_rms_px": rms,
+            "quality_warning": candidate.get("quality_warning"),
+            "intrinsics": {"fx": fx, "fy": fy, "cx": cx, "cy": cy, "distortion": distortion},
+        }
+        payload = {key: value for key, value in calibration.items() if key != "verified_at"}
+        profile_id = hashlib.sha256(
+            json.dumps(payload, sort_keys=True, allow_nan=False).encode()
+        ).hexdigest()
+        calibration["profile_id"] = profile_id
+        versions = profile.setdefault("calibration_profiles", {})
+        profile["calibration"] = versions.setdefault(profile_id, calibration)
+        profile["stream"].update(width_px=width, height_px=height)
+        return self._commit(camera_id, profile)
+
+    def set_orientation(self,camera_id,yaw_deg,pitch_deg,roll_deg,source,north_reference=None,evidence_ref=None):
         p=self.get(camera_id)
         for name,v in [('yaw_deg',yaw_deg),('pitch_deg',pitch_deg),('roll_deg',roll_deg)]: number(v,name)
         if source not in ('sensor','manual','calibration','simulation'): raise CameraError('invalid orientation source')
+        if north_reference is not None or evidence_ref is not None:
+            if (source != 'calibration' or north_reference not in ('true_north', 'magnetic_north')
+                or not isinstance(evidence_ref, str) or not evidence_ref.strip()):
+                raise CameraError('Referenced orientation requires calibrated source and evidence')
+            if not 0 <= yaw_deg < 360 or not -90 <= pitch_deg <= 90 or not -180 <= roll_deg <= 180:
+                raise CameraError('Orientation angles outside supported bounds')
         p['orientation']={'yaw_deg':yaw_deg,'pitch_deg':pitch_deg,'roll_deg':roll_deg,'source':source}
+        if north_reference is not None:
+            p['orientation'].update(north_reference=north_reference,evidence_ref=evidence_ref.strip())
         return self._commit(camera_id,p)
 
     def readiness(self,camera_id):

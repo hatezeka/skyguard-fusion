@@ -39,6 +39,8 @@ class StartRequest(BaseModel):
     camera_index: int = Field(default=0, ge=0, le=4)
     confidence: float = Field(default=0.35, ge=0.01, le=1.0)
     fusion_enabled: bool = False
+    usb_mode: tuple[int, int] | None = None
+    stereo_right_index: int | None = Field(default=None, ge=0, le=4)
     source_type: str = "usb"
     source_location: StrictInt | StrictStr | None = None
     camera_id: str | None = Field(
@@ -97,7 +99,28 @@ def resolve_live_source(request: StartRequest) -> VideoSourceConfig:
         )
         if type(location) is not int or not 0 <= location <= 4:
             raise HTTPException(422, "USB camera index must be 0-4")
-        return VideoSourceConfig("usb", location)
+        if request.usb_mode is not None and request.usb_mode not in (
+            (640, 480), (1280, 720), (1920, 1080),
+        ):
+            raise HTTPException(422, "Unsupported DirectShow USB resolution")
+        mode = request.usb_mode
+        if request.camera_id is not None:
+            calibration = registry().get(request.camera_id)["calibration"]
+            if calibration.get("profile_id") and calibration["status"] == "CALIBRATED":
+                profile_mode = tuple(calibration["resolution"])
+                if mode is not None and mode != profile_mode:
+                    raise HTTPException(422, "USB capture mode does not match calibration")
+                mode = profile_mode
+        if request.stereo_right_index is not None:
+            if request.fusion_enabled:
+                raise HTTPException(422, "Stereo requires independent detector inference")
+            if request.stereo_right_index == location or mode not in (None, (640, 480)):
+                raise HTTPException(422, "Stereo requires distinct indices and 640x480")
+            return VideoSourceConfig("usb", location, (640, 480), "YUY2", request.stereo_right_index)
+        return VideoSourceConfig("usb", location, mode)
+
+    if request.stereo_right_index is not None:
+        raise HTTPException(422, "Stereo requires USB sources")
 
     if request.source_type == "rtsp":
         if os.environ.get("SKYGUARD_ENABLE_RTSP_LIVE") != "1":

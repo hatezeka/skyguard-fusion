@@ -1,0 +1,49 @@
+{
+  "status": "PASS",
+  "checkpoint_sha256": "eee9ea5271fa0e3505e3ff103d4e51202f234445e4c19c3482fa7aa00a122901",
+  "ultralytics_version": "8.4.215",
+  "checkpoint_classes": {
+    "0": "DRONE",
+    "1": "BIRD"
+  },
+  "expected_counts": {
+    "DRONE": 1,
+    "BIRD": 1,
+    "UNKNOWN": 0
+  },
+  "observed_counts": {
+    "DRONE": 1,
+    "BIRD": 1,
+    "UNKNOWN": 0
+  },
+  "best_same_label_iou": {
+    "DRONE": 0.8484681260057821,
+    "BIRD": 0.8640125050613974
+  },
+  "minimum_iou": 0.5,
+  "unknown_trained": false,
+  "detections": [
+    {
+      "classification": "BIRD",
+      "confidence": 0.8596477508544922,
+      "bbox": [
+        20.148786544799805,
+        29.00666618347168,
+        346.3055114746094,
+        436.3916320800781
+      ],
+      "track_id": null
+    },
+    {
+      "classification": "DRONE",
+      "confidence": 0.7696364521980286,
+      "bbox": [
+        191.9144835472107,
+        176.98458862304688,
+        547.9470825195312,
+        408.6037292480469
+      ],
+      "track_id": null
+    }
+  ]
+}

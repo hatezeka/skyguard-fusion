@@ -45,7 +45,17 @@ class ImageCalibrationReport:
     assessments: tuple[ImageAssessment, ...]
 
     def as_dict(self) -> dict:
+        intrinsics = self.calibration.intrinsics
+        # Pinhole angular span across the calibrated image, with principal-point offset.
+        horizontal = math.atan2(intrinsics.cx_px, intrinsics.fx_px) + math.atan2(
+            self.image_width - 1 - intrinsics.cx_px, intrinsics.fx_px,
+        )
+        vertical = math.atan2(intrinsics.cy_px, intrinsics.fy_px) + math.atan2(
+            self.image_height - 1 - intrinsics.cy_px, intrinsics.fy_px,
+        )
         return {
+            "pinhole_fov_horizontal_deg": math.degrees(horizontal),
+            "pinhole_fov_vertical_deg": math.degrees(vertical),
             "model": "pinhole_radial_tangential_5",
             "validation": "reprojection_only",
             "physical_range_estimated": False,

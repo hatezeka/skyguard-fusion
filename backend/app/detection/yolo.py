@@ -2,6 +2,7 @@ from pathlib import Path
 import math
 
 import numpy as np
+from skyguard_fix.core import Detection as ObjectProposal, merge_object_proposals
 
 from app.detection.engine import (
     BoundingBox,
@@ -23,6 +24,7 @@ class YOLODetectionEngine(DetectionEngine):
         ):
             raise ValueError("Invalid confidence threshold")
 
+        self.consolidate_proposals = model is None
         if model is None:
             if not model_path:
                 raise ValueError("Model path is required")
@@ -34,6 +36,12 @@ class YOLODetectionEngine(DetectionEngine):
 
             from ultralytics import YOLO
             model = YOLO(str(path))
+            if model.task != "detect":
+                raise ValueError("Checkpoint must be an object detector")
+            labels = {index: self.map_class(name) for index, name in model.names.items()}
+            expected = {0: "drone", 1: "bird"}
+            if labels not in (expected, {**expected, 2: "unknown"}):
+                raise ValueError("Unexpected checkpoint classes")
 
         self.model = model
         self.confidence_threshold = confidence_threshold
@@ -133,4 +141,19 @@ class YOLODetectionEngine(DetectionEngine):
                 )
             )
 
+        if self.consolidate_proposals:
+            proposals = [
+                ObjectProposal(
+                    d.object_class.upper(), d.confidence,
+                    (d.bbox.x, d.bbox.y, d.bbox.x + d.bbox.width, d.bbox.y + d.bbox.height),
+                    'live_primary',
+                )
+                for d in detections if d.object_class in ('drone', 'bird', 'unknown')
+            ]
+            finalized = [d for d in detections if d.object_class == 'other']
+            for proposal in merge_object_proposals(proposals):
+                x1, y1, x2, y2 = proposal.xyxy
+                label = 'unknown' if proposal.verdict_status == 'CONFLICT_REVIEW' else self.map_class(proposal.label)
+                finalized.append(Detection(label, proposal.confidence, BoundingBox(x1, y1, x2 - x1, y2 - y1)))
+            detections = finalized
         return DetectionValidator.validate(image, detections)

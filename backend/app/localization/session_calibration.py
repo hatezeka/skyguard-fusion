@@ -57,7 +57,7 @@ def freeze_session_calibration(
         return {key: value.get(key) for key in keys}
 
     calibration = registry_record.get('calibration')
-    clean_cal = fields(calibration, ('status', 'resolution', 'verified_at'))
+    clean_cal = fields(calibration, ('status', 'resolution', 'verified_at', 'profile_id', 'validation_status'))
     if clean_cal is not None:
         clean_cal['intrinsics'] = fields(
             calibration.get('intrinsics'),
@@ -69,7 +69,7 @@ def freeze_session_calibration(
         'calibration': clean_cal,
         'orientation': fields(
             registry_record.get('orientation'),
-            ('yaw_deg', 'pitch_deg', 'roll_deg', 'source'),
+            ('yaw_deg', 'pitch_deg', 'roll_deg', 'source', 'north_reference', 'evidence_ref'),
         ),
     }
     try:

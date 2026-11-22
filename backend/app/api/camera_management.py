@@ -2,6 +2,7 @@
 from __future__ import annotations
 import os
 from pathlib import Path
+from typing import Literal
 from functools import lru_cache
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel, Field
@@ -44,6 +45,8 @@ class Orientation(BaseModel):
     pitch_deg: float
     roll_deg: float
     source: str
+    north_reference: Literal["true_north", "magnetic_north"] | None = None
+    evidence_ref: str | None = Field(default=None, min_length=1, max_length=160)
 
 def invoke(fn, *args, **kwargs):
     try:
@@ -84,3 +87,14 @@ def update_orientation(camera_id: str, payload: Orientation):
 @router.get('/{camera_id}/readiness')
 def readiness(camera_id: str):
     return invoke(registry().readiness, camera_id)
+
+class UsbCalibrationImport(BaseModel):
+    candidate: dict
+    optical_setup: str = Field(min_length=1, max_length=160)
+
+
+@router.post('/{camera_id}/calibration/import')
+def import_usb_calibration(camera_id: str, payload: UsbCalibrationImport):
+    return invoke(
+        registry().import_usb_calibration, camera_id, payload.candidate, payload.optical_setup
+    )

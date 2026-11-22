@@ -87,3 +87,18 @@ test('the IP camera view reports a lost stream after waiting for the first frame
   expect(await screen.findByText(/IP camera signal unavailable/, {}, { timeout: 3500 })).toBeTruthy()
   expect(screen.queryByRole('img', { name: 'Annotated IP camera frame' })).toBeNull()
 })
+
+test('MediaLab renders confirmed targets and excludes UNKNOWN trajectories', async () => {
+  const points = [{ frame: 0, x_px: 10, y_px: 20 }, { frame: 1, x_px: 15, y_px: 25 }]
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json({
+    id: 'trajectory-test', kind: 'VIDEO', status: 'DONE', frames_processed: 2,
+    session_id: null, error: null, summary: { track_paths_px: [
+      { track_id: 'verified-drone', classification: 'DRONE', points },
+      { track_id: 'invalid-unknown-track', classification: 'UNKNOWN', points },
+    ] },
+  })))
+  render(<MediaLab activeJobId="trajectory-test" />)
+  expect(await screen.findByText('Recorded pixel trajectories (1)', {}, { timeout: 3000 })).toBeTruthy()
+  expect(screen.getByText('verified-drone')).toBeTruthy()
+  expect(screen.queryByText('invalid-unknown-track')).toBeNull()
+})

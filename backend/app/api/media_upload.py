@@ -8,6 +8,7 @@ from __future__ import annotations
 import base64
 from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
+from functools import lru_cache
 import hashlib
 import json
 import os
@@ -22,11 +23,11 @@ from fastapi.responses import FileResponse
 from starlette.concurrency import run_in_threadpool
 
 from skyguard_fix.cli import draw, evaluate_file
-from skyguard_fix.core import UltralyticsPredictor, multiscale
+from skyguard_fix.core import BirdVerifier, UltralyticsPredictor, multiscale
 
 router = APIRouter(prefix='/api/media', tags=['SkyGuard original dashboard media'])
 _ROOT = Path(__file__).resolve().parents[2]
-_REPORT = _ROOT / 'reports' / 'operator_media'
+_REPORT = Path(os.environ.get('SKYGUARD_MEDIA_REPORT_DIR') or _ROOT / 'reports' / 'operator_media').resolve()
 _MODEL_DEFAULT = _ROOT / 'models' / 'skyguard-drone-bird-t4-v1' / 'best.pt'
 _MAX_BYTES = 80 * 1024 * 1024
 _jobs: dict[str, dict] = {}
@@ -71,13 +72,23 @@ def _file_kind(data: bytes | bytearray, declared: str) -> tuple[str, str]:
     raise HTTPException(415, 'Only valid JPG, PNG, or MP4 input is supported')
 
 
-def _summary(detections_jsonl: Path):
+def _frame_counts(labels):
+    counts = dict.fromkeys(("DRONE", "BIRD", "UNKNOWN"), 0)
+    for label in labels:
+        counts[label] += 1
+    return {"counts": counts, "total_detected_objects": sum(counts.values())}
+
+
+def _summary(detections_jsonl: Path, *, image=False):
+    image_rows = []
     count = Counter()
     review_count = 0
     times = []
     for line in detections_jsonl.read_text(encoding='utf-8').splitlines():
         row = json.loads(line)
         times.append(float(row.get('inference_ms', 0)))
+        if image:
+            image_rows.append(row)
         for d in row.get('detections', []):
             if d.get('verdict_status') == 'CONFLICT_REVIEW':
                 review_count += 1
@@ -86,7 +97,27 @@ def _summary(detections_jsonl: Path):
             count[cls] += 1
             # Raw independent detections DO NOT establish identity persistence.
             # No synthetic IDs or trajectories are created for this uploaded clip.
+    frame_result = {}
+    if len(image_rows) == 1 and isinstance(image_rows[0].get("detections"), list):
+        frame = image_rows[0]
+        detections = [
+            {
+                "classification": "UNKNOWN" if d.get("verdict_status") == "CONFLICT_REVIEW" else d["label"],
+                "confidence": None if d.get("verdict_status") == "CONFLICT_REVIEW" else d["confidence"],
+                "bbox": d["xyxy"],
+                "track_id": None,
+            }
+            for d in frame["detections"]
+        ]
+        frame_result = {
+            "analysis_status": "COMPLETED",
+            "source_type": "IMAGE",
+            "frame_id": frame["source_frame_index"],
+            "detections": detections,
+            **_frame_counts(d["classification"] for d in detections),
+        }
     return {
+        **frame_result,
         'detections_per_frame_total': dict(count),
         'conflict_review_total': review_count,
         'unique_confirmed_tracks': {},
@@ -114,6 +145,23 @@ def _get_job(request: Request, jid: str):
         return dict(job) if job else None
 
 
+@lru_cache(maxsize=1)
+def _bird_verifier(path: Path):
+    return BirdVerifier(path)
+
+
+def _bird_verifier_path() -> Path:
+    configured = os.environ.get('SKYGUARD_BIRD_VERIFIER_PATH')
+    return Path(configured) if configured else _model_path().parent.parent / 'yolo11n.pt'
+
+
+def _verify_image_birds(frame, detections):
+    path = _bird_verifier_path()
+    if path.is_file():
+        return _bird_verifier(path.resolve()).verify(frame, detections)
+    return detections
+
+
 def _worker(jobid: str, source: Path, kind: str, job_store):
     try:
         _update_job(job_store, jobid, status='RUNNING')
@@ -125,10 +173,10 @@ def _worker(jobid: str, source: Path, kind: str, job_store):
         report = evaluate_file(
             source, source.parent / 'inference', predictor,
             max_frames=0, include_tiles=True, video_webm=True, on_progress=report_progress,
-            inference_lock=_predict_lock,
+            inference_lock=_predict_lock, image_verifier=_verify_image_birds,
         )
         folder = source.parent / 'inference'
-        summary = _summary(folder / 'detections.jsonl')
+        summary = _summary(folder / 'detections.jsonl', image=kind == 'IMAGE')
         preview_path = folder / report['prediction_file']
         if not preview_path.is_file() or preview_path.stat().st_size == 0:
             raise RuntimeError('Annotated output was not produced')
@@ -162,7 +210,7 @@ def _worker(jobid: str, source: Path, kind: str, job_store):
 @router.get('/health')
 def media_health():
     path = _model_path()
-    return {'status': 'ok', 'model_found': path.is_file(), 'model_path': str(path), 'upload_max_bytes': _MAX_BYTES}
+    return {'status': 'ok', 'model_found': path.is_file(), 'bird_verifier_found': _bird_verifier_path().is_file(), 'model_path': str(path), 'upload_max_bytes': _MAX_BYTES}
 
 
 @router.post('/upload', status_code=202)
@@ -276,7 +324,7 @@ async def browser_frame(request: Request):
     dets = await run_in_threadpool(_analyze_browser_frame, frame)
     result = [
         {
-            'classification': d.label if d.verdict_status != 'CONFLICT_REVIEW' else None,
+            'classification': d.label if d.verdict_status != 'CONFLICT_REVIEW' else 'UNKNOWN',
             'verdict_status': d.verdict_status,
             'track_id': None,
             'confidence': d.confidence,
@@ -294,5 +342,6 @@ async def browser_frame(request: Request):
     return {'frame_index':frame_idx,'session_id':'browser-local', 'detections':result,
             'pixel_trajectories':[], 'confirmed_unique_id_count':{},
             'latency_ms':round((time.perf_counter()-start)*1000,2), 'range_m':None,
+            'analysis_status':'COMPLETED', **_frame_counts(d['classification'] for d in result),
             'preview_jpeg_base64':base64.b64encode(jpg.tobytes()).decode('ascii'),
             'tracking_status':'NOT_ESTABLISHED_FOR_BROWSER_FRAMES'}

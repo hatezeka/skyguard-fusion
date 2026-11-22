@@ -1,0 +1,99 @@
+{
+  "source_sha256": "62b871e9ea54991203d2d37c3367ce66bc3499f5f5a836478ab0559c154cc8de",
+  "checkpoint_sha256": "eee9ea5271fa0e3505e3ff103d4e51202f234445e4c19c3482fa7aa00a122901",
+  "unknown_trained": false,
+  "source_dimensions_px": [
+    554,
+    554
+  ],
+  "manual_approximate_annotation_xyxy": {
+    "DRONE": [
+      231,
+      174,
+      554,
+      404
+    ],
+    "BIRD": [
+      10,
+      25,
+      315,
+      439
+    ]
+  },
+  "expected_counts": {
+    "DRONE": 1,
+    "BIRD": 1,
+    "UNKNOWN": 0
+  },
+  "observed_counts": {
+    "DRONE": 3,
+    "BIRD": 2,
+    "UNKNOWN": 0
+  },
+  "best_same_label_iou": {
+    "DRONE": 0.38386863382330044,
+    "BIRD": 0.5265559651447167
+  },
+  "minimum_iou": 0.5,
+  "detections": [
+    {
+      "classification": "DRONE",
+      "confidence": 0.7568052212397257,
+      "bbox": [
+        0,
+        9.97254467010498,
+        554,
+        450.8146667480469
+      ],
+      "track_id": null
+    },
+    {
+      "classification": "BIRD",
+      "confidence": 0.7114095687866211,
+      "bbox": [
+        65.13307189941406,
+        105.9833755493164,
+        337.7220458984375,
+        385.46014404296875
+      ],
+      "track_id": null
+    },
+    {
+      "classification": "DRONE",
+      "confidence": 0.680492639541626,
+      "bbox": [
+        132.47955322265625,
+        205.1156768798828,
+        413.4327697753906,
+        406.2608337402344
+      ],
+      "track_id": null
+    },
+    {
+      "classification": "BIRD",
+      "confidence": 0.679892897605896,
+      "bbox": [
+        10.805849075317383,
+        32.50534439086914,
+        203.21205139160156,
+        298.7251892089844
+      ],
+      "track_id": null
+    },
+    {
+      "classification": "DRONE",
+      "confidence": 0.5843620896339417,
+      "bbox": [
+        2.099896192550659,
+        249.32498168945312,
+        271.55767822265625,
+        449.99200439453125
+      ],
+      "track_id": null
+    }
+  ],
+  "latency_ms": 19576.61,
+  "job_status": "DONE",
+  "error": null,
+  "status": "FAIL"
+}

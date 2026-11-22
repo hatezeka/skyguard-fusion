@@ -24,10 +24,10 @@ def draw(frame,dets):
         review = d.verdict_status == 'CONFLICT_REVIEW'
         color = (0, 190, 255) if review else {'DRONE':(0,230,0),'BIRD':(255,200,0),'UNKNOWN':(0,160,255)}[d.label]
         cv2.rectangle(out,(x1,y1),(x2,y2),color,2)
-        cv2.putText(out,'REVIEW' if review else f'{d.label} {d.confidence:.2f}',(x1,max(15,y1-5)),cv2.FONT_HERSHEY_SIMPLEX,.45,color,1)
+        cv2.putText(out,'UNKNOWN' if review else f'{d.label} {d.confidence:.2f}',(x1,max(15,y1-5)),cv2.FONT_HERSHEY_SIMPLEX,.45,color,1)
     return out
 
-def evaluate_file(source,folder,predictor,max_frames=0,stride=1,include_tiles=True,video_webm=False,on_progress=None,inference_lock=None):
+def evaluate_file(source,folder,predictor,max_frames=0,stride=1,include_tiles=True,video_webm=False,on_progress=None,inference_lock=None,image_verifier=None):
     if stride<1 or max_frames<0:raise ValueError('Bad sample configuration')
     source=Path(source);folder=Path(folder)
     if folder.exists():raise FileExistsError(folder)
@@ -62,7 +62,9 @@ def evaluate_file(source,folder,predictor,max_frames=0,stride=1,include_tiles=Tr
                 if max_frames and frame_count>=max_frames:break
                 start=time.perf_counter()
                 with inference_lock if inference_lock is not None else nullcontext():
-                    dets=multiscale(frame,predictor,predictor.names,include_tiles=include_tiles,mode=os.environ.get('SKYGUARD_INFERENCE_MODE','adaptive'))
+                    dets=multiscale(frame,predictor,predictor.names,include_tiles=include_tiles,mode='full' if is_image else os.environ.get('SKYGUARD_INFERENCE_MODE','adaptive'))
+                    if is_image and image_verifier is not None:
+                        dets = image_verifier(frame, dets)
                 elapsed=(time.perf_counter()-start)*1000
                 times.append(elapsed)
                 for d in dets:

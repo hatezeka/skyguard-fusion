@@ -6,6 +6,7 @@ No GPS or range is inferred, no UNKNOWN ID is assigned, no synthetic frames.
 """
 from __future__ import annotations
 
+from collections import deque
 import hashlib
 import logging
 import math
@@ -113,6 +114,7 @@ class LiveRecorder:
         self.last_error: str | None = None
         self.last_observation: tuple[str, int, datetime] | None = None
         self.latest_event: ObservedFrame | None = None
+        self.recent_publications: deque[tuple[str, int, datetime]] = deque(maxlen=30)
         self._db_session_by_live: dict[str, str] = {}
         self._last_live: str | None = None
         self._closed: set[str] = set()
@@ -135,6 +137,7 @@ class LiveRecorder:
             with self.lock:
                 self.last_observation = (event.live_session_id, event.frame_index, event.observed_at)
                 self.latest_event = event
+                self.recent_publications.append((event.live_session_id, event.frame_index, event.observed_at))
         except queue.Full:
             self._failure("Persistence queue full; live frame NOT archived", lost=True)
         except (ValueError, TypeError, AttributeError) as exc:
@@ -175,7 +178,8 @@ class LiveRecorder:
                 validation_level="SOFTWARE_ONLY",
                 dataset_ref=ref,
             ), actor="live_bridge")["id"]
-        self._db_session_by_live[event.live_session_id] = session_id
+        with self.lock:
+            self._db_session_by_live[event.live_session_id] = session_id
         return session_id
 
     def _process(self, item: ObservedFrame) -> None:
@@ -281,6 +285,23 @@ class LiveRecorder:
                 "queued_frames": self.queue.qsize(),
                 "capture_timestamp_semantics": "host_publication_utc_not_sensor_timestamp",
             }
+
+    def persisted_session_id(self, live_session_id: str | None) -> str | None:
+        if live_session_id is None:
+            return None
+        with self.lock:
+            return self._db_session_by_live.get(live_session_id)
+
+    def publication_fps(self, live_session_id: str | None, frame_index: int | None) -> float | None:
+        if live_session_id is None or frame_index is None:
+            return None
+        with self.lock:
+            timestamps = [observed for session, index, observed in self.recent_publications
+                          if session == live_session_id and index <= frame_index]
+        if len(timestamps) < 2:
+            return None
+        elapsed = (timestamps[-1] - timestamps[0]).total_seconds()
+        return (len(timestamps) - 1) / elapsed if elapsed > 0 else None
 
     def observed_event(self, session_id: str | None, frame_index: int | None) -> ObservedFrame | None:
         with self.lock:

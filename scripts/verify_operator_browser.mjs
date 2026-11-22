@@ -1,5 +1,5 @@
 import { spawn } from 'node:child_process'
-import { mkdtemp, readFile, rm } from 'node:fs/promises'
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
@@ -74,20 +74,149 @@ try {
       return true
     })()`), label)
   }
+  if (mode === '--camera-coverage') {
+    // Browser-only evidence fixtures. The live service and database are read-only throughout.
+    const camera = {id:'coverage-test-camera', name:'Coverage test fixture', source_kind:'USB',
+      latitude:42.6, longitude:21.1, calibration_ref:'test-calibration'}
+    const benchmark = {id:'coverage-test', validation_level:'PHYSICAL_VERIFIED',metrics:{camera_coverage_v1:{
+      camera_id:camera.id, latitude:camera.latitude, longitude:camera.longitude,
+      calibration_ref:camera.calibration_ref, evidence_ref:'test-fixture-only', position_source:'Test source',
+      position_uncertainty_m:1.25, fixed_camera:true, heading_deg:90, horizontal_fov_deg:50,
+      trials:[{latitude:42.6, longitude:21.101, horizontal_m:120, bearing_deg:90, passed:true}],
+    }}}
+    const fixtures={'/api/persistence/cameras':[camera],'/api/persistence/benchmarks':[benchmark],
+      '/styles/dark':{version:8,sources:{},layers:[{id:'fixture-base',type:'background',paint:{'background-color':'#10212e'}}]}}
+    socket.addEventListener('message',event=>{
+      const msg=JSON.parse(event.data)
+      if(msg.method!=='Fetch.requestPaused')return
+      const {request,requestId}=msg.params
+      const value=fixtures[new URL(request.url).pathname]
+      if(value)void call('Fetch.fulfillRequest',{requestId,responseCode:200,
+       responseHeaders:[{name:'Content-Type',value:'application/json'},{name:'Access-Control-Allow-Origin',value:'*'}],body:Buffer.from(JSON.stringify(value)).toString('base64')})
+      else void call('Fetch.continueRequest',{requestId})
+    })
+    await call('Fetch.enable',{patterns:Object.keys(fixtures).map(path=>({urlPattern:'*'+path+'*'}))})
+  }
   await call('Network.enable')
   await call('Page.navigate', { url })
   async function connectPersistence() {
-    await click('Integration settings')
-    const key = process.env.SKYGUARD_DB_API_KEY
-    if (!key) throw new Error('Missing verification key')
-    await evaluate(`(() => {
-      const input = document.querySelector('input[type=password]')
-      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(input, ${JSON.stringify(key)})
-      input.dispatchEvent(new Event('input', { bubbles: true }))
-    })()`)
-    await click('Connect persistence')
-    await waitFor(() => evaluate("document.body.innerText.includes('DATABASE CONNECTED')"), 'database connection')
+    await waitFor(() => evaluate("document.body.innerText.includes('DATABASE CONNECTED')"), 'automatic database connection')
   }
+  if (mode === '--geospatial-reference') {
+    const result = await waitFor(() => evaluate(`(() => {
+      const reference = document.querySelector('[aria-label="Geospatial reference / Camera rig location"]')
+      const map = document.querySelector('[aria-label="Interactive real geographic map"] canvas')
+      const tactile = [...document.querySelectorAll('h2,h3')].some(el=>el.textContent==='Tactical representation')
+      const status = reference?.querySelector('[role="status"]')?.textContent?.trim()
+      if(!status?.startsWith('GEO_REFERENCE_') || !map || !tactile) return null
+      return {status,geographicCanvas:map.width>0&&map.height>0,tacticalPanel:tactile}
+    })()`), 'rig configuration and two map panels', 45000)
+    process.stdout.write(JSON.stringify(result))
+  } else
+  if (mode === '--visible-stereo') {
+    await click('Live observation')
+    const result = await waitFor(() => evaluate(`(() => {
+      const panels = [...document.querySelectorAll('.sg-stereo-grid section')]
+      if (panels.length !== 2) return null
+      const frames = panels.map(panel => {
+        const image = panel.querySelector('img')
+        const bounds = image?.getBoundingClientRect()
+        return {label:panel.getAttribute('aria-label'), width:image?.naturalWidth, height:image?.naturalHeight,
+                visible: Boolean(bounds && bounds.width > 0 && bounds.height > 0)}
+      })
+      return frames.every(frame => frame.visible && frame.width === 640 && frame.height === 480) ? frames : null
+    })()`), 'two decoded stereo images', 65000)
+    process.stdout.write(JSON.stringify({frames:result}))
+  } else
+  if (mode === '--multi-object-image') {
+    await click('Live observation')
+    const {root} = await call('DOM.getDocument')
+    const {nodeId} = await call('DOM.querySelector', {
+      nodeId:root.nodeId, selector:'input[aria-label="Choose image or video"]',
+    })
+    const started = performance.now()
+    await call('DOM.setFileInputFiles', {nodeId, files:[image]})
+    const result = await waitFor(() => evaluate(`(() => {
+      const panel = document.querySelector('[aria-label="ANALYSIS COMPLETE"]')
+      const photo = document.querySelector('img[alt="Annotated upload"]')
+      if (!panel || !photo?.complete || !photo.naturalWidth) return null
+      panel.scrollIntoView({block:'end'})
+      return Object.fromEntries([...panel.querySelectorAll('[data-class]')].map(
+        el => [el.dataset.class, Number(el.querySelector('dd').textContent)]))
+    })()`), 'annotated image and object cards', 150000)
+    const latencyMs = Math.round(performance.now() - started)
+    const {data} = await call('Page.captureScreenshot', {format:'png'})
+    await writeFile(video, Buffer.from(data,'base64'), {flag:'wx'})
+    process.stdout.write(JSON.stringify({counts:result, latencyMs, screenshot:video}))
+    if(result.DRONE!==1 || result.BIRD!==1 || result.UNKNOWN!==0) process.exitCode=1
+  } else
+  if (mode === '--camera-coverage') {
+    await connectPersistence()
+    await click('Dual map views')
+    await waitFor(()=>evaluate("!!document.querySelector('.sg-map-coverage-controls select option[value=coverage-test-camera]')"),'camera selector')
+    await evaluate(`(() => {
+      const select=document.querySelector('.sg-map-coverage-controls select')
+      select.value='coverage-test-camera'
+      select.dispatchEvent(new Event('change',{bubbles:true}))
+    })()`)
+    await waitFor(()=>evaluate("!!document.querySelector('.sg-map-sensor') && document.querySelectorAll('.sg-map-ring-label').length===3"),'camera marker and rings')
+      .catch(async error=>{
+        const diagnostic=await evaluate(`({
+          camera:document.querySelector('.sg-map-coverage-controls select')?.value,
+          rings:document.querySelectorAll('.sg-map-ring-label').length,
+          markers:document.querySelectorAll('.sg-map-sensor').length,
+          mapCanvas:!!document.querySelector('.maplibregl-canvas'),
+          mapError:document.querySelector('.sg-map-status-error')?.textContent,
+        })`)
+        throw new Error(error.message+': '+JSON.stringify(diagnostic))
+      })
+    const status=await evaluate("document.body.innerText.includes('Detektimi u verifikua deri në 120 m në drejtimin e testuar')")
+    if(!status)throw new Error('Missing one-direction evidence label')
+    const evidence=[]
+    for(const [device,width,height] of [['desktop',1440,900],['phone',390,844]]){
+      await call('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:device==='phone'})
+      const view=await waitFor(()=>evaluate(`(() => {
+        const map=document.querySelector('.sg-maplibre-host').getBoundingClientRect()
+        const camera=document.querySelector('.sg-map-sensor').getBoundingClientRect()
+        const dx=Math.abs((camera.left+camera.right-map.left-map.right)/2)
+        const dy=Math.abs((camera.top+camera.bottom-map.top-map.bottom)/2)
+        if(dx>14||dy>14||window.innerWidth!==${width})return null
+        return {markerCentered:true, ringLabels:[...document.querySelectorAll('.sg-map-ring-label')].map(e=>e.textContent),
+          horizontalOverflow:document.documentElement.scrollWidth>document.documentElement.clientWidth+1}
+      })()`),'camera centered and scale visible on '+device)
+      if(view.horizontalOverflow||view.ringLabels.some(label=>!label.endsWith(' m')))throw new Error('Coverage viewport overflow or missing units')
+      evidence.push({device,...view})
+    }
+    const initial=await evaluate("document.querySelector('.sg-map-ring-label')?.textContent")
+    await evaluate("document.querySelector('.maplibregl-ctrl-zoom-in').click()")
+    await evaluate("document.querySelector('.maplibregl-ctrl-zoom-in').click()")
+    await waitFor(()=>evaluate(`document.querySelector('.sg-map-ring-label')?.textContent !== ${JSON.stringify(initial)}`),'zoom-dependent scale')
+    process.stdout.write(JSON.stringify({ fixtureOnly:true, oneDirectionLabel:true, zoomAdaptive:true, evidence }))
+  } else
+  if (mode === '--auto-persistence') {
+    const databaseConnected = () => evaluate("document.body.innerText.includes('DATABASE CONNECTED')")
+    await waitFor(databaseConnected, 'automatic database connection')
+    await click('Dual map views')
+    const selectedSession = () => evaluate("document.querySelector('.sg-title-actions select')?.value || null")
+    const before = await waitFor(selectedSession, 'session selected')
+    const resumeUrl = new URL(url)
+    resumeUrl.searchParams.set('verify-auto-reload', '1')
+    await call('Page.navigate', { url: resumeUrl.href })
+    await waitFor(() => evaluate("location.search.includes('verify-auto-reload=1') && !!document.querySelector('.sg-root')"), 'new dashboard document')
+    await waitFor(databaseConnected, 'automatic reconnection after refresh')
+    const after = await waitFor(selectedSession, 'session restored')
+    const retainedView = await evaluate("document.querySelector('main h1')?.textContent === 'Dual map views'")
+    if (before !== after || !retainedView) throw new Error('The session or view was not restored')
+    const hiddenPages = await evaluate(`[...document.querySelectorAll('nav button')].every(button =>
+      !['Scientific validation','Integration settings'].includes(button.textContent.trim()))`)
+    await click('Command center')
+    const overviewHasUpload = await evaluate("!!document.querySelector('.sg-media-lab')")
+    await click('Live observation')
+    await waitFor(()=>evaluate("!!document.querySelector('.sg-media-lab input[type=file]')"),'original MediaLab upload')
+    if(!hiddenPages||overviewHasUpload)throw new Error('Unexpected navigation or uploader placement')
+    process.stdout.write(JSON.stringify({ databaseConnectedAfterReload: true, sessionRestored: true, retainedView,
+      removedPagesHidden:true, mediaLabOnLiveObservation:true }))
+  } else {
   await connectPersistence()
   if (mode === '--tracking') {
     async function inspectHistory() {
@@ -106,13 +235,37 @@ try {
     await waitFor(() => evaluate("location.search.includes('verify-tracking-reload=1') && !!document.querySelector('.sg-root')"), 'new dashboard document')
     await connectPersistence()
     const afterReload = await inspectHistory()
-    process.stdout.write(JSON.stringify({ beforeReload, afterReload }))
+    const trackingId = await evaluate("document.querySelector('table tbody tr code')?.textContent?.trim()")
+    await click('Dual map views')
+    const pixelPath = await waitFor(() => evaluate(`(() => {
+      const chart = document.querySelector('.sg-pixel-tracks')
+      const line = chart?.querySelector('polyline')
+      const label = chart?.querySelector('button')?.textContent
+      const unavailable = document.body.innerText.includes('Vendndodhja e dronit e padisponueshme')
+      if (!line || !label || !unavailable) return null
+      return { points: line.getAttribute('points').split(' ').length, label,
+        noGeographicDroneMarker: !document.querySelector('.sg-map-drone'), metersShown: !!document.querySelector('.scale-mark') }
+    })()`), 'camera pixel trajectory and absence of GPS')
+      .catch(async error=>{
+        const view=await evaluate(`({
+          heading:document.querySelector('main h1')?.textContent,
+          session:document.querySelector('select[aria-label="Active recording session"]')?.value,
+          chart:document.querySelector('.sg-pixel-tracks')?.textContent,
+          statuses:[...document.querySelectorAll('.sg-map-status-info,.sg-map-status-error')].map(e=>e.textContent),
+          radar:!!document.querySelector('.sg-angular-radar'),
+          text:document.querySelector('main')?.innerText.slice(0,900),
+        })`)
+        throw new Error(error.message+': '+JSON.stringify(view))
+      })
+    if (!trackingId || !pixelPath.label.includes(trackingId) || pixelPath.points < 2 ||
+        !pixelPath.noGeographicDroneMarker || pixelPath.metersShown) throw new Error('Pixel map integrity check failed')
+    process.stdout.write(JSON.stringify({ beforeReload, afterReload, trackingId, pixelPath }))
   } else {
   const viewportEvidence = []
   if (mode === '--responsive') {
     const screens = [['phone', 360, 800], ['tablet', 768, 1024], ['desktop', 1440, 900]]
     const pages = ['Command center','Live observation','Object tracking','Dual map views','Alert management',
-      'Evidence ledger','Performance','Camera registry','Scientific validation','Integration settings']
+      'Evidence ledger','Performance','Camera registry']
     for (const [device, width, height] of screens) {
       await call('Emulation.setDeviceMetricsOverride', { width, height, mobile: width <= 800, deviceScaleFactor: 1 })
       for (const page of pages) {
@@ -177,6 +330,7 @@ try {
     if (kind === 'VIDEO') uploadTimeToDisplayMs[kind] = Math.round(performance.now() - started)
   }
   process.stdout.write(JSON.stringify({ ...mapEvidence, previews, uploadTimeToDisplayMs, mediaResultRestoredAfterReload: true, webmDecoded: true }))
+  }
   }
   }
 } finally {

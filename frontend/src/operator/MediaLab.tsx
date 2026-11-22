@@ -1,9 +1,10 @@
 import {useEffect,useRef,useState} from 'react'
 import './media-lab.css'
+import {checkedFrameCounts,ObjectCountPanel,type FrameResult} from './ObjectCountPanel'
 
 type Point={frame:number;x_px:number;y_px:number}
 type Path={track_id:string;classification:string;points:Point[]}
-type Job={id:string;status:string;kind:string;frames_processed:number;session_id:string|null;error:string|null;summary?:{detections_per_frame_total?:Record<string,number>;conflict_review_total?:number;unique_confirmed_tracks?:Record<string,number>;mean_inference_pipeline_ms?:number|null;preview_jpeg_base64?:string|null;prediction_url?:string;model_classes?:Record<string,string>;unknown_trained?:boolean;track_paths_px?:Path[];scientific_accuracy?:string;note?:string}}
+type Job={id:string;status:string;kind:string;frames_processed:number;session_id:string|null;error:string|null;summary?:FrameResult & {detections_per_frame_total?:Record<string,number>;conflict_review_total?:number;unique_confirmed_tracks?:Record<string,number>;mean_inference_pipeline_ms?:number|null;preview_jpeg_base64?:string|null;prediction_url?:string;model_classes?:Record<string,string>;unknown_trained?:boolean;track_paths_px?:Path[];scientific_accuracy?:string;note?:string}}
 function TrajectoryPlot({paths}:{paths:Path[]}){
   const points=paths.flatMap(p=>p.points)
   if(!points.length)return null
@@ -21,7 +22,7 @@ function TrajectoryPlot({paths}:{paths:Path[]}){
   </g>)}
   </svg></div>
 }
-type LiveResult={frame_index:number;session_id:string;detections:Array<{classification:string|null;track_id:string|null;confidence:number; bbox:[number,number,number,number]}>;pixel_trajectories:Array<{track_id:string;points:Point[]}>;confirmed_unique_id_count:Record<string,number>;preview_jpeg_base64?:string|null;latency_ms:number;range_m:null}
+type LiveResult=FrameResult & {frame_index:number;session_id:string;detections:Array<{classification:string|null;track_id:string|null;confidence:number; bbox:[number,number,number,number]}>;pixel_trajectories:Array<{track_id:string;points:Point[]}>;confirmed_unique_id_count:Record<string,number>;preview_jpeg_base64?:string|null;latency_ms:number;range_m:null}
 const noRange='Distanca: E PAVERIFIKUAR — GPS i kamerës nuk jep largësinë e objektit.'
 
 class ApiError extends Error {
@@ -46,7 +47,7 @@ type MediaLabProps = {
 }
 
 export default function MediaLab({persistenceKey = '', activeJobId, onJobAccepted}:MediaLabProps){
-  const deployed=import.meta.env.VITE_SKYGUARD_DEPLOYED==='true'
+  const deployed=import.meta.env.VITE_SKYGUARD_DEPLOYED==='true'||import.meta.env.VITE_SKYGUARD_LOCAL_PROXY===true
   const [,setFile]=useState<File|null>(null)
   const [job,setJob]=useState<Job|null>(null)
   const [message,setMessage]=useState('')
@@ -199,7 +200,23 @@ export default function MediaLab({persistenceKey = '', activeJobId, onJobAccepte
     }catch(e){setMessage(`IP stream: ${String(e)}`)}
   }
 
-  const paths=job?.summary?.track_paths_px??live?.pixel_trajectories?.map(p=>({...p,classification:'DRONE/BIRD'}))??[]
+  const trackedLive = new Map<string, string>()
+  const blockedLiveIds = new Set<string>()
+  for(const detection of live?.detections??[]){
+    if(!detection.track_id)continue
+    if(detection.classification==='DRONE'||detection.classification==='BIRD'){
+      trackedLive.set(detection.track_id,detection.classification)
+    }else{
+      blockedLiveIds.add(detection.track_id)
+    }
+  }
+  const livePaths=(live?.pixel_trajectories??[]).flatMap(path=>{
+    const classification=trackedLive.get(path.track_id)
+    return classification&&!blockedLiveIds.has(path.track_id)?[{...path,classification}]:[]
+  })
+  const jobPaths=job?.summary?.track_paths_px
+  const blockedJobIds=new Set(jobPaths?.filter(path=>path.classification!=='DRONE'&&path.classification!=='BIRD').map(path=>path.track_id))
+  const paths=jobPaths?.filter(path=>!blockedJobIds.has(path.track_id))??livePaths
   return <section className="sg-media-lab" aria-label="AI photo video and camera analysis">
     <header><div><h2>AI Media Analysis & Live Cameras</h2><p>Real backend inference · persistence API · DRONE/BIRD tracking · UNKNOWN without IDs</p></div><span>SOFTWARE-ONLY / SCIENTIFICALLY UNCERTIFIED</span></header>
     <div className="sg-media-cols">
@@ -209,14 +226,16 @@ export default function MediaLab({persistenceKey = '', activeJobId, onJobAccepte
     </div>
     {message&&<p role="status" className="sg-media-message">{message}</p>}
     {job&&<div className="sg-media-result"><h3>Job: {job.status}</h3><p>Session: {job.session_id??'Media-only job'} · Frames: {job.frames_processed} · Type: {job.kind} · Error: {job.error??'none'}</p></div>}
-    {live&&cameraOn&&<div className="sg-media-result"><h3>Live frame #{live.frame_index}</h3><p>Detections this frame: {live.detections.length} · Confirmed identities: {JSON.stringify(live.confirmed_unique_id_count)} · Processing: {live.latency_ms} ms</p></div>}
+    {live&&cameraOn&&<div className="sg-media-result"><h3>Live frame #{live.frame_index}</h3><p>Processing: {live.latency_ms} ms</p></div>}
     {ipSignal&&<p role="status" className="sg-media-message">{ipSignal}</p>}
     {ipLive&&<div className="sg-media-result"><h3>IP live: {ipLive.state}</h3><p>Frame: {ipLive.frame_index??'—'} · Observed detections: {ipLive.detections?.length??0} · Confirmed tracks: {ipLive.tracks?.length??0}</p></div>}
     {job?.status==='DONE'&&job.kind==='VIDEO'&&job.summary?.prediction_url&&<div className="sg-media-result"><h3>Annotated analysis video</h3><video className="sg-media-output" controls preload="metadata" src={job.summary.prediction_url}/><a href={job.summary.prediction_url} download>Open annotated video</a></div>}
     {job?.summary?.preview_jpeg_base64&&<img className="sg-media-output" alt="Annotated upload" src={'data:image/jpeg;base64,'+job.summary.preview_jpeg_base64}/>}
     {cameraOn&&live?.preview_jpeg_base64&&<img className="sg-media-output" alt="Annotated browser camera frame" src={'data:image/jpeg;base64,'+live.preview_jpeg_base64}/>}
     {ipLive?.image_base64&&<img className="sg-media-output" alt="Annotated IP camera frame" src={'data:image/jpeg;base64,'+ipLive.image_base64}/>}
-    {job?.summary&&<div className="sg-media-result"><p>Model classes: {JSON.stringify(job.summary.model_classes??{})} · UNKNOWN trained: {job.summary.unknown_trained?'yes':'no'}</p><p>Detection events: {JSON.stringify(job.summary.detections_per_frame_total??{})}</p><p>Conflicting proposals for review: {job.summary.conflict_review_total??0}</p><p>Distinct confirmed track IDs: {JSON.stringify(job.summary.unique_confirmed_tracks??{})}</p><p>Measured mean pipeline latency: {job.summary.mean_inference_pipeline_ms??'—'} ms</p><p>Ground-truth accuracy: {job.summary.scientific_accuracy??'NOT MEASURED'}</p></div>}
+    {cameraOn&&live&&<ObjectCountPanel counts={checkedFrameCounts(live)} heading="Browser camera frame"/>}
+    {typeof job?.summary?.conflict_review_total==="number"&&job.summary.conflict_review_total>0&&<p>Conflicting proposals for review: {job.summary.conflict_review_total}</p>}
+    {job?.kind==="IMAGE"&&job.status==="DONE"&&<ObjectCountPanel counts={checkedFrameCounts(job.summary??{})} heading={checkedFrameCounts(job.summary??{})?"ANALYSIS COMPLETE":"Image analysis"}/>}
     {paths.length>0&&<details><summary>Recorded pixel trajectories ({paths.length})</summary><TrajectoryPlot paths={paths}/><div className="sg-media-tracks">{paths.slice(0,30).map(p=><div key={p.track_id}><strong>{p.track_id}</strong> · {('classification' in p ? p.classification : 'DRONE/BIRD')} · {p.points.length} measured frame positions · Last: {JSON.stringify(p.points[p.points.length-1])}</div>)}</div></details>}
     <p className="sg-media-caveat">{noRange} UNKNOWN never gets track ID or trajectory. A photo has no motion history. RGB classification and model checkpoints still require source-disjoint ground-truth validation.</p>
   </section>

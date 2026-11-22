@@ -1,0 +1,117 @@
+{
+    "state":  "running",
+    "error":  null,
+    "profile_sha256":  "38c6080ef40fbf7b17a1aea1d889379ec0f750095eec7bd5c12943d408bdcd33",
+    "calibration_status":  "CALIBRATION_SUSPECT",
+    "range_status":  "RANGE_UNAVAILABLE",
+    "cameras":  {
+                    "left":  {
+                                 "index":  0,
+                                 "valid_frames":  653,
+                                 "queue_drops":  641,
+                                 "unpaired_drops":  3,
+                                 "frozen_drops":  0,
+                                 "backend":  "DSHOW",
+                                 "fourcc":  "YUY2",
+                                 "actual_size":  [
+                                                     640,
+                                                     480
+                                                 ],
+                                 "observed_fps":  23.802495623763328,
+                                 "mean_read_ms":  38.72069969372132
+                             },
+                    "right":  {
+                                  "index":  1,
+                                  "valid_frames":  517,
+                                  "queue_drops":  504,
+                                  "unpaired_drops":  4,
+                                  "frozen_drops":  0,
+                                  "backend":  "DSHOW",
+                                  "fourcc":  "YUY2",
+                                  "actual_size":  [
+                                                      640,
+                                                      480
+                                                  ],
+                                  "observed_fps":  19.836077881516108,
+                                  "mean_read_ms":  47.533262475822056
+                              }
+                },
+    "frames":  [
+                   {
+                       "left":  41,
+                       "right":  0,
+                       "left_jpeg":  true,
+                       "right_jpeg":  true,
+                       "host_skew_ms":  27.604,
+                       "left_inference_ms":  20351.623600116,
+                       "right_inference_ms":  632.8804001677781,
+                       "render_ms":  2.79600010253489,
+                       "analysis_fps":  null,
+                       "counts":  {
+                                      "Name":  "BIRD",
+                                      "Count":  1
+                                  },
+                       "match_count":  0
+                   },
+                   {
+                       "left":  509,
+                       "right":  393,
+                       "left_jpeg":  true,
+                       "right_jpeg":  true,
+                       "host_skew_ms":  5.3362,
+                       "left_inference_ms":  907.8776000533253,
+                       "right_inference_ms":  287.68640011548996,
+                       "render_ms":  4.037000006064773,
+                       "analysis_fps":  0.4384036320864111,
+                       "counts":  {
+
+                                  },
+                       "match_count":  0
+                   },
+                   {
+                       "left":  574,
+                       "right":  449,
+                       "left_jpeg":  true,
+                       "right_jpeg":  true,
+                       "host_skew_ms":  8.4847,
+                       "left_inference_ms":  420.1873999554664,
+                       "right_inference_ms":  367.02170013450086,
+                       "render_ms":  3.412799909710884,
+                       "analysis_fps":  0.6504062925507992,
+                       "counts":  {
+
+                                  },
+                       "match_count":  0
+                   },
+                   {
+                       "left":  597,
+                       "right":  468,
+                       "left_jpeg":  true,
+                       "right_jpeg":  true,
+                       "host_skew_ms":  4.2657,
+                       "left_inference_ms":  829.2475999332964,
+                       "right_inference_ms":  312.55749985575676,
+                       "render_ms":  4.5547999907284975,
+                       "analysis_fps":  0.7099733026372431,
+                       "counts":  {
+
+                                  },
+                       "match_count":  0
+                   },
+                   {
+                       "left":  628,
+                       "right":  496,
+                       "left_jpeg":  true,
+                       "right_jpeg":  true,
+                       "host_skew_ms":  12.6243,
+                       "left_inference_ms":  297.8917001746595,
+                       "right_inference_ms":  402.199300006032,
+                       "render_ms":  3.770699957385659,
+                       "analysis_fps":  0.8094690065447593,
+                       "counts":  {
+
+                                  },
+                       "match_count":  0
+                   }
+               ]
+}

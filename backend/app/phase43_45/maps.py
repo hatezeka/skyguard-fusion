@@ -90,3 +90,25 @@ def dual_scene(session_id: str, frame_index: int, timestamp_ms: float,
             'tactical_map': {'objects': tactical}, 'real_map': {'objects': geo},
             'basemap': {'status': 'USE_EXISTING_LICENSED_FRONTEND_PROVIDER',
                         'coordinates_invented': False}}
+
+
+def live_localization_scene(session_id, frame_index, timestamp_utc, observations):
+    """One immutable observation list feeds both LIVE maps."""
+    objects = []
+    for item in observations:
+        label = item.get("classification")
+        tid = item.get("track_id")
+        if label not in ("DRONE", "BIRD") or tid is None:
+            continue
+        objects.append({
+            "measurement_id": f"{session_id}:{frame_index}:{tid}",
+            "track_id": tid,
+            "classification": label,
+            "timestamp_utc": timestamp_utc,
+            "localization": {"status": "UNAVAILABLE", "reason": item["range_status"], "xyz_m": None,
+                             "uncertainty_status": "UNCERTAINTY_UNAVAILABLE"},
+            "geographic": {"status": "GEOLOCATION_UNAVAILABLE", "reason": "NO_VALIDATED_STEREO_XYZ",
+                           "latitude": None, "longitude": None, "altitude_m": None},
+        })
+    return {"version": "skyguard-live-localization-v1", "session_id": session_id,
+            "sequence": frame_index, "timestamp_utc": timestamp_utc, "objects": objects}

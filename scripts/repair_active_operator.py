@@ -1,4 +1,5 @@
 """Repair the active local backend credential, retaining its database and Vite process."""
+import argparse
 import json
 import os
 from pathlib import Path
@@ -26,20 +27,36 @@ def listener(port):
 
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--reload', action='store_true', help='Reload updated code with the existing matching credentials')
+    parser.add_argument('--stereo-profile', type=Path, help='Select an existing Stereo V3 profile on reload')
+    args = parser.parse_args()
+    if args.stereo_profile and (not args.reload or not args.stereo_profile.is_file()):
+        parser.error("--stereo-profile requires --reload and an existing profile")
     backend, frontend = listener(8000), listener(5173)
     assert Path(backend.cwd()) == BACKEND and Path(frontend.cwd()) == ROOT / "frontend"
     assert "app.skyguard_persistence.composed:app" in backend.cmdline()
     backend_env, frontend_env = backend.environ(), frontend.environ()
-    assert not backend_env.get("SKYGUARD_DATABASE_URL") and not backend_env.get("SKYGUARD_API_KEY")
-    assert any(Path(file.path) == DB for file in backend.open_files())
+    assert not backend_env.get("SKYGUARD_DATABASE_URL")
+    # Windows file-handle enumeration can block. Command, cwd, URL, live health
+    # and verified SQLite backup below identify and protect the default database.
+    if os.name != "nt":
+        assert any(Path(file.path) == DB for file in backend.open_files())
     media_key, db_key = frontend_env["SKYGUARD_API_KEY"], backend_env["SKYGUARD_DB_API_KEY"]
+    if args.reload:
+        assert backend_env.get("SKYGUARD_API_KEY") == media_key, "Existing media credentials do not match"
+    else:
+        assert not backend_env.get("SKYGUARD_API_KEY")
     headers = {"Authorization": "Bearer " + db_key}
     with httpx.Client(timeout=5, trust_env=False) as client:
         before = client.post("http://127.0.0.1:8000/api/media/upload")
-        assert before.status_code == 503 and before.json()["detail"] == "API authentication is not configured"
+        if args.reload:
+            assert before.status_code == 401
+        else:
+            assert before.status_code == 503 and before.json()["detail"] == "API authentication is not configured"
         assert client.get("http://127.0.0.1:8000/api/persistence/health", headers=headers).json()["backend"] == "sqlite"
         status = client.get("http://127.0.0.1:8000/api/persistence/live/status", headers=headers)
-        if status.status_code == 200 and status.json()["state"] != "idle":
+        if status.status_code == 200 and status.json()["state"] not in {"idle", "stopped"}:
             raise RuntimeError("A camera session is active")
         stamp = time.strftime("%Y%m%d-%H%M%S")
         backup = DB.with_name("skyguard-backup-before-auth-" + stamp + ".sqlite3")
@@ -66,7 +83,10 @@ def main():
         assert listener(8000).pid == previous_pid
         backend.terminate()
         backend.wait(10)
-        restarted = start({**backend_env, "SKYGUARD_API_KEY": media_key}, "backend")
+        environment = {**backend_env, "SKYGUARD_API_KEY": media_key}
+        if args.stereo_profile:
+            environment["SKYGUARD_STEREO_PROFILE"] = str(args.stereo_profile.resolve())
+        restarted = start(environment, "backend")
         try:
             for _ in range(100):
                 try:
@@ -91,10 +111,11 @@ def main():
                       frontend_pid=frontend.pid, database=str(DB.relative_to(ROOT)),
                       database_configuration="Default SQLite path; SKYGUARD_DATABASE_URL absent",
                       backup=str(backup.relative_to(ROOT)), revision="0002",
-                      prior_media_upload_http=503, media_health_through_vite_http=media.status_code,
+                      prior_media_upload_http=before.status_code, media_health_through_vite_http=media.status_code,
                       configured_model_found=media.json().get("model_found"),
                       live_frame_through_vite_http=live.status_code, live_state=live.json().get("state"))
-        (BACKEND / "reports" / "operator-active-runtime.json").write_text(json.dumps(result, indent=2) + "\n",
+        report_name = "operator-active-reload.json" if args.reload else "operator-active-runtime.json"
+        (BACKEND / "reports" / report_name).write_text(json.dumps(result, indent=2) + "\n",
                                                                         encoding="utf-8")
         print(json.dumps(result))
 

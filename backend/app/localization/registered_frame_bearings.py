@@ -38,9 +38,9 @@ def _finite(value: object, name: str) -> float:
     return float(value)
 
 
-def _validate_registry(
+def registered_optics(
     record: Mapping, camera_id: str, width: int, height: int
-) -> tuple[CameraDirectionProfile, RegistryDistortedIntrinsics, tuple[float, float, float], str]:
+) -> RegistryDistortedIntrinsics:
     if not isinstance(record, Mapping) or record.get("camera_id") != camera_id:
         raise ValueError("Registry camera_id does not match live frame")
     stream = record.get("stream")
@@ -85,6 +85,13 @@ def _validate_registry(
         distortion=distortion,
     )
 
+    return optics
+
+
+def _validate_registry(
+    record: Mapping, camera_id: str, width: int, height: int
+) -> tuple[CameraDirectionProfile, RegistryDistortedIntrinsics, tuple[float, float, float], str]:
+    optics = registered_optics(record, camera_id, width, height)
     pose = record.get("orientation")
     if not isinstance(pose, Mapping):
         raise ValueError("Registry orientation is missing")

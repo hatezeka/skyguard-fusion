@@ -1,0 +1,36 @@
+{
+    "state":  "running",
+    "error":  null,
+    "reference_status":  "GEO_REFERENCE_MISSING",
+    "range_status":  "RANGE_UNAVAILABLE",
+    "calibration_status":  "CALIBRATION_SUSPECT",
+    "scenes":  [
+                   {
+                       "version":  "skyguard-live-localization-v1",
+                       "session_id":  "0e92690a1df243e1812946c65ce5309d",
+                       "sequence":  21,
+                       "timestamp_utc":  "2026-11-22T06:24:43.681629Z",
+                       "objects":  [
+
+                                   ]
+                   },
+                   {
+                       "version":  "skyguard-live-localization-v1",
+                       "session_id":  "0e92690a1df243e1812946c65ce5309d",
+                       "sequence":  354,
+                       "timestamp_utc":  "2026-11-22T06:24:44.243629Z",
+                       "objects":  [
+
+                                   ]
+                   },
+                   {
+                       "version":  "skyguard-live-localization-v1",
+                       "session_id":  "0e92690a1df243e1812946c65ce5309d",
+                       "sequence":  384,
+                       "timestamp_utc":  "2026-11-22T06:24:45.449630Z",
+                       "objects":  [
+
+                                   ]
+                   }
+               ]
+}

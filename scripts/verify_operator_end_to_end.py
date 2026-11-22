@@ -116,7 +116,6 @@ def verify(args, temp):
     try:
         wait_until(lambda: server.started, 30)
         env = dict(os.environ)
-        env.pop("SKYGUARD_DB_API_KEY")
         env["SKYGUARD_BACKEND_PORT"] = str(backend_port)
         vite = subprocess.Popen(
             [shutil.which("node"), "node_modules/vite/bin/vite.js", "--config", "operator.vite.config.ts", "--port", str(vite_port), "--strictPort"],
@@ -133,7 +132,7 @@ def verify(args, temp):
             wait_until(ready, 30)
             assert key not in client.get("/operator.html").text
             for path in ("/health", "/cameras", "/sessions", "/benchmarks", "/audit", "/live/frame", "/live/status", "/live/health"):
-                assert client.get("/api/persistence" + path).status_code == 401, path
+                assert client.get(f"http://127.0.0.1:{backend_port}/api/persistence" + path).status_code == 401, path
                 response = client.get("/api/persistence" + path, headers=auth)
                 response.raise_for_status()
                 result[path] = response.status_code
@@ -155,7 +154,7 @@ def verify(args, temp):
             result["dashboard_session_reads"] = 7
             assert client.get(f"http://127.0.0.1:{backend_port}/api/media/health").status_code == 401
             assert client.get("/api/media/health").json()["model_found"]
-            assert client.get("/api/persistence/health", headers={"Authorization": "Bearer invalid"}).status_code == 403
+            assert client.get(f"http://127.0.0.1:{backend_port}/api/persistence/health", headers={"Authorization": "Bearer invalid"}).status_code == 403
             os.environ.pop("SKYGUARD_API_KEY")
             try:
                 missing = client.post("/api/media/upload")
@@ -249,7 +248,8 @@ def verify(args, temp):
                     **({"local_tcp_connected": True, "credentials_supplied": target.username is not None,
                         "stream_access_verified_by_decoded_frames": True} if rtsp_url else {"index": args.usb_index}),
                     "frame_index": frame["frame_index"], "real_jpeg": True,
-                    "latency_ms": frame["latency_ms"], "persisted_frames": wait_until(persisted, 15),
+                    "latency_ms": frame["latency_ms"], "publication_fps": frame.get("fps"), "fps_source": frame.get("fps_source"),
+                    "persisted_frames": wait_until(persisted, 15),
                     "detections_in_sample": len(frame["detections"]), "tracks_in_sample": len(frame["tracks"]),
                     "recorder": frame["recorder"],
                 }

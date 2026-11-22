@@ -1,6 +1,8 @@
-"""Bounded, single-camera live detection session."""
+"""Bounded live detection session using the primary camera tracker."""
+import base64
+import os
 import threading
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from uuid import uuid4
 from app.localization.session_calibration import freeze_session_calibration
 from time import perf_counter
@@ -8,6 +10,8 @@ import cv2
 from app.detection.engine import DetectionValidator
 from app.detection.tracker import ObjectTracker
 from app.video.source import UniversalVideoSource
+from app.video.stereo_capture import StereoCapture
+from app.detection.stereo_observation import load_stereo_profile, stereo_observations
 from datetime import datetime, timezone
 from app.detection.trajectory_history import TrajectoryHistory
 
@@ -23,6 +27,7 @@ class SessionSnapshot:
     ambiguous_tracks: list[dict] = field(default_factory=list)
     trajectories: list[dict] = field(default_factory=list)
     session_id: str | None = None
+    stereo: dict | None = None
 
 class LiveSessionManager:
 
@@ -60,13 +65,22 @@ class LiveSessionManager:
             reset = getattr(detector, 'reset', None)
             if callable(reset):
                 reset()
-            with UniversalVideoSource(config) as source:
+            right_index = getattr(config, 'stereo_right_index', None)
+            stereo = right_index is not None
+            profile = load_stereo_profile(os.environ.get("SKYGUARD_STEREO_PROFILE")) if stereo else None
+            capture = StereoCapture(config.location, right_index) if stereo else UniversalVideoSource(config)
+            with capture as source:
                 while not self._stop.is_set():
-                    frame = source.read()
+                    if stereo:
+                        left, right = source.next_pair(cancel=self._stop)
+                        frame = left.frame
+                    else:
+                        frame = source.read()
                     if frame is None:
                         break
                     started = perf_counter()
                     detections = detector.detect(frame.image)
+                    left_inference_ms = (perf_counter() - started) * 1000
                     DetectionValidator.validate(frame.image, detections)
                     # Only target objects enter the production tracker; UNKNOWN remains a detection.
                     tracked_detections = [d for d in detections if d.object_class in ('drone', 'bird')]
@@ -151,12 +165,20 @@ class LiveSessionManager:
                     ]
 
                     annotated = frame.image.copy()
-                    for t in tracks:
-                        b = t.detection.bbox
+                    ids = {id(track.detection): track.track_id for track in tracks}
+                    colors = {'drone': (0, 230, 0), 'bird': (255, 200, 0), 'unknown': (0, 160, 255)}
+                    for detection in detections:
+                        label = detection.object_class if detection.object_class in colors else 'unknown'
+                        b = detection.bbox
                         p1 = (int(b.x), int(b.y))
                         p2 = (int(b.x + b.width), int(b.y + b.height))
-                        cv2.rectangle(annotated, p1, p2, (0, 255, 0), 2)
-                        cv2.putText(annotated, f'{t.detection.object_class} #{t.track_id}', (p1[0], max(15, p1[1] - 8)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
+                        color = colors[label]
+                        tid = ids.get(id(detection))
+                        identity = f' #{tid}' if tid is not None and label != 'unknown' else ''
+                        confidence = '' if label == 'unknown' else f' {detection.confidence:.2f}'
+                        cv2.rectangle(annotated, p1, p2, color, 2)
+                        cv2.putText(annotated, f'{label.upper()}{identity}{confidence}',
+                                    (p1[0], max(15, p1[1] - 8)), cv2.FONT_HERSHEY_SIMPLEX, .5, color, 1)
                     for t in ambiguous:
                         b = t.detection.bbox
                         p1 = (int(b.x), int(b.y))
@@ -181,6 +203,40 @@ class LiveSessionManager:
                         annotated,
                         [cv2.IMWRITE_JPEG_QUALITY, 75],
                     )
+                    stereo_data = None
+                    if stereo:
+                        right_started = perf_counter()
+                        right_detections = detector.detect(right.frame.image)
+                        right_inference_ms = (perf_counter() - right_started) * 1000
+                        DetectionValidator.validate(right.frame.image, right_detections)
+                        observations = stereo_observations(frame.image, right.frame.image, tracks, right_detections, profile)
+                        right_render_started = perf_counter()
+                        right_image = right.frame.image.copy()
+                        right_ids = {item.right_bbox: item.track_id for item in observations if item.right_bbox}
+                        for detection in right_detections:
+                            box = detection.bbox
+                            label = detection.object_class if detection.object_class in colors else 'unknown'
+                            track_id = right_ids.get((box.x, box.y, box.width, box.height))
+                            identity = f' #{track_id}' if label != 'unknown' and track_id is not None else ''
+                            x, y = int(box.x), int(box.y)
+                            cv2.rectangle(right_image, (x, y), (int(box.x+box.width), int(box.y+box.height)), colors[label], 2)
+                            cv2.putText(right_image, f'{label.upper()}{identity} {detection.confidence:.2f}',
+                                        (x, max(15,y-8)), cv2.FONT_HERSHEY_SIMPLEX, .5, colors[label], 1)
+                        right_ok, right_jpeg = cv2.imencode('.jpg', right_image, [cv2.IMWRITE_JPEG_QUALITY, 75])
+                        stereo_data = {
+                            "right_image_base64": base64.b64encode(right_jpeg.tobytes()).decode("ascii") if right_ok else None,
+                            "left_inference_ms": left_inference_ms,
+                            "right_inference_ms": right_inference_ms,
+                            "right_render_ms": (perf_counter() - right_render_started) * 1000,
+                            "profile_sha256": profile.sha256 if profile else None,
+                            "calibration_status": "CALIBRATION_SUSPECT" if profile else "CALIBRATION_UNAVAILABLE",
+                            "timestamp_semantics": "HOST_READ_RETURN_NOT_EXPOSURE",
+                            "right_frame_index": right.frame.index,
+                            "host_skew_ms": abs(left.timestamp_ns - right.timestamp_ns) / 1e6,
+                            "range_status": "RANGE_UNAVAILABLE",
+                            "objects": [asdict(item) for item in observations],
+                            "cameras": source.report(),
+                        }
                     snapshot = SessionSnapshot(
                         state='running',
                         frame_index=frame.index,
@@ -191,6 +247,7 @@ class LiveSessionManager:
                         camera_id=self._camera_id, session_id=self._session_id,
                         ambiguous_tracks=ambiguous_data,
                         trajectories=trajectory_data,
+                        stereo=stereo_data,
                     )
                     with self._lock:
                         if not self._stop.is_set():
@@ -226,12 +283,12 @@ class LiveSessionManager:
         except Exception as exc:
             with self._lock:
                 self._snapshot = SessionSnapshot(
-                    'error',
+                    'stopped' if self._stop.is_set() else 'error',
                     self._snapshot.frame_index,
                     self._snapshot.detections,
                     self._snapshot.tracks,
                     self._snapshot.processing_seconds,
-                    ('RTSP stream unavailable' if getattr(config, 'source_type', None) == 'rtsp'
+                    ('USB stereo: '+str(exc) if getattr(config, 'stereo_right_index', None) is not None and not self._stop.is_set() else 'RTSP stream unavailable' if getattr(config, 'source_type', None) == 'rtsp'
                      else f'{type(exc).__name__}: {exc}'),
                     camera_id=self._camera_id, session_id=self._session_id,
                     ambiguous_tracks=self._snapshot.ambiguous_tracks,
