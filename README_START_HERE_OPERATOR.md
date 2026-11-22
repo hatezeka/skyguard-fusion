@@ -49,7 +49,7 @@ The capture probe verifies decoded dimensions and reported FOURCC without saving
 - Retain evidence and report each scenario independently. Static board acceptance and synthetic geometry tests do not establish moving-drone accuracy.
 ## Jury handoff
 
-Use the Git branch `feature/skyguard-final-engineering`. Start the original operator console on localhost. The launcher configures the browser proxy and backend keys for the process. The UI does not require entering those keys.
+Use the Git branch `feature/skyguard-final-engineering`. Start the original operator console on localhost. The launcher configures the browser proxy and backend keys for the process. The UI does not require entering those keys. Jury mode creates a fresh migrated SQLite database and media directory at every launch. Results persist across browser refreshes during that run.
 
 From a fresh Windows checkout, install dependencies first:
 
@@ -64,7 +64,7 @@ Put the separately supplied `skyguard-drone-bird-t4-v1/best.pt` at `backend/mode
 
 ```powershell
 $model = (Resolve-Path backend/models/skyguard-drone-bird-t4-v1/best.pt).Path
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/start_skyguard_operator.ps1 -Python $python -ModelPath $model
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/start_skyguard_operator.ps1 -Jury -Python $python -ModelPath $model
 Start-Process 'http://127.0.0.1:5173/operator.html?view=monitor'
 ```
 

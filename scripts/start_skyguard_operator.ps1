@@ -1,4 +1,4 @@
-param([string]$Repository = (Split-Path -Parent $PSScriptRoot), [string]$Python, [string]$ModelPath, [string]$DatabasePath, [switch]$Demo, [ValidateRange(1,65535)][int]$BackendPort = 8000, [ValidateRange(1,65535)][int]$FrontendPort = 5173)
+param([string]$Repository = (Split-Path -Parent $PSScriptRoot), [string]$Python, [string]$ModelPath, [string]$DatabasePath, [switch]$Demo, [switch]$Jury, [ValidateRange(1,65535)][int]$BackendPort = 8000, [ValidateRange(1,65535)][int]$FrontendPort = 5173)
 $ErrorActionPreference='Stop'
 $repo=[IO.Path]::GetFullPath($Repository)
 $branch=(& git -C $repo branch --show-current).Trim()
@@ -11,6 +11,7 @@ if ($ModelPath) {
   $ModelPath=(Resolve-Path -LiteralPath $ModelPath).Path
   if (-not (Test-Path -LiteralPath $ModelPath -PathType Leaf)) { throw "Checkpoint file required: $ModelPath" }
 }
+if ($Jury -and ($Demo -or $DatabasePath)) { throw 'Jury mode creates its own empty database' }
 if ($Demo -and -not $DatabasePath) { throw 'Demo mode needs an isolated database file' }
 if ($DatabasePath) {
   $DatabasePath=(Resolve-Path -LiteralPath $DatabasePath).Path
@@ -39,6 +40,8 @@ $previousDbKey=$env:SKYGUARD_DB_API_KEY
 $previousDbUrl=$env:SKYGUARD_DATABASE_URL
 $previousDemoMode=$env:SKYGUARD_DEMO_MODE
 $previousMediaDir=$env:SKYGUARD_MEDIA_REPORT_DIR
+$previousRigReference=$env:SKYGUARD_RIG_REFERENCE
+$previousCameraRegistry=$env:SKYGUARD_CAMERA_REGISTRY
 $previousApiKey=$env:SKYGUARD_API_KEY
 $previousModelPath=$env:SKYGUARD_MODEL_PATH
 $previousBackendPort=$env:SKYGUARD_BACKEND_PORT
@@ -46,6 +49,22 @@ try {
   $env:SKYGUARD_DB_API_KEY=$key
   $env:SKYGUARD_API_KEY=$key
   if ($DatabasePath) { $env:SKYGUARD_DATABASE_URL = 'sqlite:///' + $DatabasePath.Replace([char]92,[char]47) }
+  if ($Jury) {
+    $juryDir = Join-Path $backend ('.skyguard_data/jury-' + [guid]::NewGuid().ToString('N'))
+    [void](New-Item -ItemType Directory -Path $juryDir)
+    $DatabasePath = Join-Path $juryDir 'skyguard.sqlite3'
+    $env:SKYGUARD_DATABASE_URL = 'sqlite:///' + $DatabasePath.Replace([char]92,[char]47)
+    $env:SKYGUARD_MEDIA_REPORT_DIR = Join-Path $juryDir 'media'
+    $env:SKYGUARD_RIG_REFERENCE = Join-Path $juryDir 'rig-reference.json'
+    $env:SKYGUARD_CAMERA_REGISTRY = Join-Path $juryDir 'camera-profiles.json'
+    Remove-Item Env:SKYGUARD_DEMO_MODE -ErrorAction SilentlyContinue
+    Push-Location $backend
+    try {
+      & $python -m alembic -c skyguard_db.ini upgrade head
+      if ($LASTEXITCODE -ne 0) { throw 'Jury database migration failed' }
+    } finally { Pop-Location }
+    Write-Host "Jury database: $DatabasePath"
+  }
   if ($ModelPath) { $env:SKYGUARD_MODEL_PATH=$ModelPath }
   if ($Demo) { $env:SKYGUARD_MEDIA_REPORT_DIR = Join-Path (Split-Path $DatabasePath) 'demo-media' }
   $api=Start-Process -FilePath $python -ArgumentList @('-m','uvicorn','app.skyguard_persistence.composed:app','--host','127.0.0.1','--port',$BackendPort) -WorkingDirectory $backend -RedirectStandardOutput (Join-Path $logDir 'backend-out.log') -RedirectStandardError (Join-Path $logDir 'backend-err.log') -WindowStyle Hidden -PassThru
@@ -59,6 +78,8 @@ try {
   $env:SKYGUARD_DATABASE_URL=$previousDbUrl
   $env:SKYGUARD_DEMO_MODE=$previousDemoMode
   $env:SKYGUARD_MEDIA_REPORT_DIR=$previousMediaDir
+  $env:SKYGUARD_RIG_REFERENCE=$previousRigReference
+  $env:SKYGUARD_CAMERA_REGISTRY=$previousCameraRegistry
   $env:SKYGUARD_API_KEY=$previousApiKey
   $env:SKYGUARD_MODEL_PATH=$previousModelPath
   $env:SKYGUARD_BACKEND_PORT=$previousBackendPort
